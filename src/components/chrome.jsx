@@ -1,6 +1,6 @@
-import {Link,NavLink} from 'react-router-dom'; import {useState} from 'react'; import {useAuth} from '../context/AuthContext'
+import {Link,NavLink} from 'react-router-dom'; import {useState} from 'react'; import {useAuth} from '../context/AuthContext'; import {isSupabaseConfigured} from '../lib/supabase'
 export function Navbar(){const {user,signOut}=useAuth();const [o,setO]=useState(false);const cls=({isActive})=>isActive?'text-white font-semibold':'text-violet-200'
- return <><div className="bg-violet-700 text-center text-sm py-2 px-3">Demo build — sample profiles are labelled. Connect Supabase via environment variables for live data.</div>
+ return <>{isSupabaseConfigured?<div className="bg-emerald-700 text-center text-sm py-2 px-3">Live — connected to Supabase. Sample profiles are still labelled Demo until real users join.</div>:<div className="bg-violet-700 text-center text-sm py-2 px-3">Demo build — sample profiles are labelled. Connect Supabase via environment variables for live data.</div>}
  <header className="sticky top-0 bg-[#0a0614]/90 backdrop-blur border-b border-violet-900"><nav className="max-w-6xl mx-auto flex items-center gap-4 p-4" aria-label="Main"><Link to="/" className="font-extrabold text-xl">Danqel<span className="text-violet-400">.</span></Link>
  <button className="ml-auto sm:hidden btn2" aria-expanded={o} aria-label="Toggle menu" onClick={()=>setO(!o)}>☰</button>
  <div className={`${o?'flex':'hidden'} sm:flex flex-col sm:flex-row gap-4 sm:ml-auto absolute sm:static top-full left-0 right-0 bg-[#0a0614] p-4 sm:p-0`}>

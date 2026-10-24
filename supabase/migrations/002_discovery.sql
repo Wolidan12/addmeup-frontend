@@ -12,3 +12,7 @@ create index idx_profiles_search on public.profiles using gin(to_tsvector('engli
 create index idx_profiles_interests on public.profiles using gin(interests);
 create or replace function public.record_profile_view(p_profile uuid) returns void language plpgsql security definer set search_path=public as $$begin if auth.uid() is null or auth.uid()=p_profile then return; end if; insert into public.profile_views(profile_id,viewer_id) values(p_profile,auth.uid()) on conflict do nothing; end$$;
 create or replace function public.delete_my_account() returns void language plpgsql security definer set search_path=public as $$begin delete from auth.users where id=auth.uid(); end$$;
+
+grant select, insert, update, delete on public.favourites, public.blocks to authenticated;
+grant insert, select on public.reports to authenticated;
+grant execute on function public.record_profile_view(uuid), public.delete_my_account() to authenticated;

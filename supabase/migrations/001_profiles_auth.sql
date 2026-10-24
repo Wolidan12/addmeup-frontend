@@ -10,3 +10,10 @@ create policy "own links write" on public.social_links for all using(exists(sele
 create or replace function public.handle_new_user() returns trigger language plpgsql security definer set search_path=public as $$begin insert into public.profiles(id,username,display_name) values(new.id,'user_'||substr(new.id::text,1,8),'New creator') on conflict(id) do nothing; return new; end$$;
 drop trigger if exists on_auth_user_created on auth.users; create trigger on_auth_user_created after insert on auth.users for each row execute function public.handle_new_user();
 -- NOTE: public selects never expose auth.users.email. Sponsored flag is admin-only: revoke update of is_sponsored from authenticated via column privilege if needed.
+
+-- Grants (RLS still restricts rows)
+grant select on public.profiles, public.social_links to anon, authenticated;
+grant insert, update, delete on public.profiles, public.social_links to authenticated;
+-- Users can never sponsor themselves: only service_role/admin may change is_sponsored
+create or replace function public.guard_sponsored() returns trigger language plpgsql as $$begin if new.is_sponsored is distinct from old.is_sponsored and coalesce(auth.role(),'') <> 'service_role' then new.is_sponsored := old.is_sponsored; end if; return new; end$$;
+drop trigger if exists guard_sponsored on public.profiles; create trigger guard_sponsored before update on public.profiles for each row execute function public.guard_sponsored();
