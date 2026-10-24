@@ -1,0 +1,5 @@
+// Clearly-labelled DEMO content only — replaced by Supabase rows when configured.
+export const DEMO_PROFILES=[
+{id:'demo-1',username:'amara.creates',display_name:'Amara Okafor (Demo)',bio:'Demo profile: lifestyle creator sharing Lagos city moments.',country:'Nigeria',interests:['Lifestyle','Travel'],avatar_url:'',is_sponsored:true,social_links:[{platform:'instagram',url:'https://instagram.com',is_public:true},{platform:'tiktok',url:'https://tiktok.com',is_public:true}]},
+{id:'demo-2',username:'tunde.wav',display_name:'Tunde A. (Demo)',bio:'Demo profile: Afrobeats playlists and studio diaries.',country:'Nigeria',interests:['Music'],avatar_url:'',is_sponsored:false,social_links:[{platform:'whatsapp',url:'+2348000000000',is_public:true}]},
+{id:'demo-3',username:'zainab.fit',display_name:'Zainab S. (Demo)',bio:'Demo profile: home workouts and wellness tips.',country:'Ghana',interests:['Fitness','Wellness'],avatar_url:'',is_sponsored:false,social_links:[{platform:'snapchat',url:'https://snapchat.com',is_public:true}]}]
