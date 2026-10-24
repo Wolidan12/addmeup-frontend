@@ -18,3 +18,5 @@
 - [ ] Admin authorization: create admin role policy before enabling sponsored flags/config edits
 
 - [ ] RENDER: create Static Site per RENDER_DEPLOY.md; run migration 004 only; set Supabase Auth URLs to Render URL; deploy Edge Functions + PAYSTACK_SECRET_KEY secret before taking payments
+
+- [ ] Run migrations 004 then 005 in SQL Editor (additive only). Verify with 2 accounts: editing another user's profile, claiming check-in twice, and opening /admin without a user_roles row must all fail.
