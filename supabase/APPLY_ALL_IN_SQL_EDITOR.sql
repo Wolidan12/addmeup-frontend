@@ -1,0 +1,68 @@
+-- ===== supabase/migrations/001_profiles_auth.sql =====
+-- 001: profiles + social links + RLS. Apply in Supabase SQL Editor (in order).
+create extension if not exists pgcrypto;
+create table public.profiles(id uuid primary key references auth.users(id) on delete cascade, username text unique not null check(username ~ '^[a-z0-9_]{3,24}$'), display_name text not null check(char_length(display_name) between 1 and 60), bio text check(char_length(bio)<=280), country text, interests text[] default '{}', avatar_url text, is_public boolean default true, is_sponsored boolean default false, created_at timestamptz default now());
+create table public.social_links(id uuid primary key default gen_random_uuid(), profile_id uuid references public.profiles(id) on delete cascade, platform text check(platform in ('whatsapp','snapchat','instagram','tiktok','facebook','x')), url text not null, is_public boolean default true, unique(profile_id,platform));
+alter table public.profiles enable row level security; alter table public.social_links enable row level security;
+create policy "public profiles readable" on public.profiles for select using(is_public or auth.uid()=id);
+create policy "own profile write" on public.profiles for all using(auth.uid()=id) with check(auth.uid()=id);
+create policy "public links readable" on public.social_links for select using(is_public or exists(select 1 from public.profiles p where p.id=profile_id and p.id=auth.uid()));
+create policy "own links write" on public.social_links for all using(exists(select 1 from public.profiles p where p.id=profile_id and p.id=auth.uid())) with check(exists(select 1 from public.profiles p where p.id=profile_id and p.id=auth.uid()));
+create or replace function public.handle_new_user() returns trigger language plpgsql security definer set search_path=public as $$begin insert into public.profiles(id,username,display_name) values(new.id,'user_'||substr(new.id::text,1,8),'New creator') on conflict(id) do nothing; return new; end$$;
+drop trigger if exists on_auth_user_created on auth.users; create trigger on_auth_user_created after insert on auth.users for each row execute function public.handle_new_user();
+-- NOTE: public selects never expose auth.users.email. Sponsored flag is admin-only: revoke update of is_sponsored from authenticated via column privilege if needed.
+
+-- Grants (RLS still restricts rows)
+grant select on public.profiles, public.social_links to anon, authenticated;
+grant insert, update, delete on public.profiles, public.social_links to authenticated;
+-- Users can never sponsor themselves: only service_role/admin may change is_sponsored
+create or replace function public.guard_sponsored() returns trigger language plpgsql as $$begin if new.is_sponsored is distinct from old.is_sponsored and coalesce(auth.role(),'') <> 'service_role' then new.is_sponsored := old.is_sponsored; end if; return new; end$$;
+drop trigger if exists guard_sponsored on public.profiles; create trigger guard_sponsored before update on public.profiles for each row execute function public.guard_sponsored();
+
+
+-- ===== supabase/migrations/002_discovery.sql =====
+-- 002: favourites, reports, blocks, views
+create table public.favourites(user_id uuid references auth.users(id) on delete cascade, profile_id uuid references public.profiles(id) on delete cascade, created_at timestamptz default now(), primary key(user_id,profile_id));
+create table public.blocks(blocker_id uuid references auth.users(id) on delete cascade, blocked_id uuid references public.profiles(id) on delete cascade, created_at timestamptz default now(), primary key(blocker_id,blocked_id));
+create table public.reports(id uuid primary key default gen_random_uuid(), reporter_id uuid references auth.users(id) on delete cascade, profile_id uuid references public.profiles(id) on delete cascade, reason text check(char_length(reason)<=500), status text default 'open', created_at timestamptz default now());
+create table public.profile_views(profile_id uuid references public.profiles(id) on delete cascade, viewer_id uuid references auth.users(id) on delete cascade, viewed_on date default current_date, primary key(profile_id,viewer_id,viewed_on));
+alter table public.favourites enable row level security; alter table public.blocks enable row level security; alter table public.reports enable row level security; alter table public.profile_views enable row level security;
+create policy "own favourites" on public.favourites for all using(auth.uid()=user_id) with check(auth.uid()=user_id);
+create policy "own blocks" on public.blocks for all using(auth.uid()=blocker_id) with check(auth.uid()=blocker_id);
+create policy "own reports insert" on public.reports for insert with check(auth.uid()=reporter_id);
+create policy "own reports read" on public.reports for select using(auth.uid()=reporter_id);
+create index idx_profiles_search on public.profiles using gin(to_tsvector('english',coalesce(display_name,'')||' '||username||' '||coalesce(country,'')));
+create index idx_profiles_interests on public.profiles using gin(interests);
+create or replace function public.record_profile_view(p_profile uuid) returns void language plpgsql security definer set search_path=public as $$begin if auth.uid() is null or auth.uid()=p_profile then return; end if; insert into public.profile_views(profile_id,viewer_id) values(p_profile,auth.uid()) on conflict do nothing; end$$;
+create or replace function public.delete_my_account() returns void language plpgsql security definer set search_path=public as $$begin delete from auth.users where id=auth.uid(); end$$;
+
+grant select, insert, update, delete on public.favourites, public.blocks to authenticated;
+grant insert, select on public.reports to authenticated;
+grant execute on function public.record_profile_view(uuid), public.delete_my_account() to authenticated;
+
+
+-- ===== supabase/migrations/003_rewards.sql =====
+-- 003: rewards. Points ONLY via security-definer functions; no client table writes.
+create table public.reward_config(key text primary key, value int not null);
+insert into public.reward_config values('daily_checkin_points',10),('referral_points',50),('checkin_enabled',1) on conflict do nothing;
+create table public.reward_tasks(id uuid primary key default gen_random_uuid(), slug text unique not null, title text not null, description text, points int not null check(points>0), daily_limit int default 1, is_active boolean default true);
+create table public.points_ledger(id uuid primary key default gen_random_uuid(), user_id uuid references auth.users(id) on delete cascade, points int not null, reason text not null, ref_key text unique, created_at timestamptz default now());
+create table public.points_balance(user_id uuid primary key references auth.users(id) on delete cascade, balance int default 0 check(balance>=0), current_streak int default 0, last_checkin date, referral_code text unique, referred_by uuid);
+create table public.task_claims(user_id uuid references auth.users(id) on delete cascade, task_slug text, claimed_on date default current_date, count int default 0, primary key(user_id,task_slug,claimed_on));
+create table public.referrals(id uuid primary key default gen_random_uuid(), referrer_id uuid, referred_id uuid unique, created_at timestamptz default now(), rewarded boolean default false);
+alter table public.points_ledger enable row level security; alter table public.points_balance enable row level security; alter table public.reward_tasks enable row level security; alter table public.task_claims enable row level security;
+create policy "read own balance" on public.points_balance for select using(auth.uid()=user_id);
+create policy "read own ledger" on public.points_ledger for select using(auth.uid()=user_id);
+create policy "read tasks" on public.reward_tasks for select using(true);
+-- no insert/update policies on ledger/balance => clients cannot award themselves points.
+create or replace function public.claim_daily_checkin() returns text language plpgsql security definer set search_path=public as $$declare pts int; b record; begin if auth.uid() is null then raise exception 'Not signed in'; end if; select value into pts from public.reward_config where key='daily_checkin_points'; insert into public.points_balance(user_id,referral_code) values(auth.uid(),'DQ-'||substr(md5(auth.uid()::text),1,8)) on conflict(user_id) do nothing; select * into b from public.points_balance where user_id=auth.uid() for update; if b.last_checkin=current_date then raise exception 'Already checked in today'; end if; update public.points_balance set balance=balance+pts, current_streak=case when b.last_checkin=current_date-1 then b.current_streak+1 else 1 end, last_checkin=current_date where user_id=auth.uid(); insert into public.points_ledger(user_id,points,reason,ref_key) values(auth.uid(),pts,'daily_checkin','checkin:'||auth.uid()||':'||current_date); return 'Check-in complete: +'||pts||' pts'; end$$;
+create or replace function public.claim_task(p_task text) returns text language plpgsql security definer set search_path=public as $$declare t record; c int; begin select * into t from public.reward_tasks where slug=p_task and is_active; if t is null then raise exception 'Task unavailable'; end if; insert into public.task_claims(user_id,task_slug,count) values(auth.uid(),p_task,1) on conflict(user_id,task_slug,claimed_on) do update set count=public.task_claims.count+1 returning count into c; if c>t.daily_limit then raise exception 'Daily limit reached'; end if; insert into public.points_balance(user_id) values(auth.uid()) on conflict(user_id) do update set balance=public.points_balance.balance+t.points; insert into public.points_ledger(user_id,points,reason,ref_key) values(auth.uid(),t.points,'task:'||p_task,'task:'||auth.uid()||':'||p_task||':'||current_date||':'||c); return 'Task claimed: +'||t.points||' pts'; end$$;
+create or replace function public.apply_referral(p_code text) returns text language plpgsql security definer set search_path=public as $$declare r record; pts int; begin select * into r from public.points_balance where referral_code=p_code; if r is null or r.user_id=auth.uid() then raise exception 'Invalid referral code'; end if; insert into public.referrals(referrer_id,referred_id,rewarded) values(r.user_id,auth.uid(),true); select value into pts from public.reward_config where key='referral_points'; insert into public.points_ledger(user_id,points,reason,ref_key) values(r.user_id,pts,'referral','referral:'||auth.uid()); insert into public.points_balance(user_id,balance) values(r.user_id,pts) on conflict(user_id) do update set balance=public.points_balance.balance+pts; return 'Referral applied.'; end$$;
+
+grant select on public.points_balance, public.points_ledger, public.reward_tasks to authenticated;
+grant execute on function public.claim_daily_checkin(), public.claim_task(text), public.apply_referral(text) to authenticated;
+insert into public.reward_tasks(slug,title,description,points,daily_limit) values
+('complete-profile','Complete your profile','Add display name, bio, country and interests in Settings',20,1),
+('add-social-link','Add a public social link','Publish at least one verified-format social link',15,1),
+('daily-discover','Visit Discover today','Open Discover and browse creators (once daily)',5,1)
+on conflict(slug) do nothing;

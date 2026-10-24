@@ -1,0 +1,4 @@
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
+export default defineConfig({server:{host:'0.0.0.0',allowedHosts:true},preview:{allowedHosts:true},plugins:[react(),VitePWA({registerType:'prompt',includeAssets:['icons/icon-192.svg','icons/icon-512.svg','offline.html'],manifest:{name:'Danqel Social Boost',short_name:'Danqel',description:'Good Connections. Greater Reach. Discover and promote social profiles safely.',theme_color:'#0a0614',background_color:'#0a0614',display:'standalone',start_url:'/',icons:[{src:'/icons/icon-192.svg',sizes:'192x192',type:'image/svg+xml'},{src:'/icons/icon-512.svg',sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]},workbox:{navigateFallback:'/offline.html',navigateFallbackDenylist:[/^\/api/,/supabase/],runtimeCaching:[{urlPattern:/supabase\.co/,handler:'NetworkOnly'}],globPatterns:['**/*.{js,css,html,png,svg}']}})]})
