@@ -1,5 +1,7 @@
 # Old website / dashboard access: deployment recovery
 
+> **Current status:** See [RELEASE_011.md](RELEASE_011.md) for stage 007–011 recovery, the latest owner evidence, tests and live-verification limitations. The earlier procedure below is historical: **do not replay completed 005/006 or the role grant.**
+
 ## What the screenshot establishes
 
 The old green “Live — connected to Supabase” banner, old Discover form and letter-only avatars belong to the pre-dashboard UI. That banner is absent from the merged main source. The screenshot also shows **Log in**, not a signed-in session. It does not establish whether Render has an old release, an old browser/PWA cache is controlling the page, or both.

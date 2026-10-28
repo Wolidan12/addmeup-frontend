@@ -68,21 +68,13 @@ export default function Home() {
   if (user) return <Navigate to="/dashboard" replace />;
   return (
     <main className="landing-v2">
-      <section className="landing-hero">
+      <section className="landing-hero landing-editorial">
         <div className="landing-hero-copy">
           <span className="design-kicker">
             <span />
             YOUR SOCIAL WORLD, REIMAGINED
           </span>
-          <h1>
-            Good connections.
-            <br />
-            <em>
-              Extraordinary
-              <br />
-              possibilities.
-            </em>
-          </h1>
+          <h1>{site.hero_title}<br/><em>Real people.<br/>More possibility.</em></h1>
           <p>{site.hero_description}</p>
           <div className="landing-hero-actions">
             <Link className="design-button primary" to="/register">
@@ -133,7 +125,7 @@ export default function Home() {
           We’re making improvements. Some member actions are temporarily paused.
         </p>
       )}
-      <section className="landing-platform-strip">
+      <nav className="landing-wayfinder" aria-label="Explore Danqel"><a href="#community-preview">01 <span>Find your people</span><ArrowUpRight size={17}/></a><a href="#rewards-preview">02 <span>Build your momentum</span><ArrowUpRight size={17}/></a><a href="#packages-preview">03 <span>Expand your reach</span><ArrowUpRight size={17}/></a></nav><section className="landing-platform-strip">
         <span>ONE SPACE. YOUR FAVOURITE PLATFORMS.</span>
         <div>
           {site.enabled_platforms.map((p) => (
@@ -188,7 +180,7 @@ export default function Home() {
           ))}
         </div>
       </section>
-      <section className="landing-community">
+      <section className="landing-community" id="community-preview">
         <div className="landing-section-heading">
           <div>
             <span className="design-kicker">THE COMMUNITY</span>
@@ -238,7 +230,7 @@ export default function Home() {
           </div>
         )}
       </section>
-      <section className="landing-section landing-rewards">
+      <section className="landing-section landing-rewards" id="rewards-preview">
         <div>
           <span className="design-kicker">A LITTLE MOMENTUM, EVERY DAY</span>
           <h2>
@@ -292,7 +284,7 @@ export default function Home() {
           ))}
         </div>
       </section>
-      <section className="landing-community landing-packages">
+      <section className="landing-community landing-packages" id="packages-preview">
         <div className="landing-section-heading">
           <div>
             <span className="design-kicker">CREATE YOUR NEXT CHAPTER</span>

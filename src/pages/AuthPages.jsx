@@ -25,89 +25,9 @@ function Shell({
   staff = false,
 }) {
   const site = useSite();
-  return (
-    <main className="auth-layout">
-      <section className="auth-story">
-        <Link className="design-brand" to="/">
-          <span className="design-brand-mark">d.</span>
-          {site.brand_name}
-        </Link>
-        <div className="auth-story-main">
-          <span className="design-kicker">
-            <span />
-            {staff
-              ? "BUILT ON ACCOUNTABILITY"
-              : "GOOD PEOPLE. GREATER POSSIBILITIES."}
-          </span>
-          <h2>
-            {staff ? (
-              <>
-                A trusted space.
-                <br />
-                <em>
-                  For the people
-                  <br />
-                  behind it.
-                </em>
-              </>
-            ) : (
-              <>
-                Not just a profile.
-                <br />
-                <em>
-                  Your next
-                  <br />
-                  possibility.
-                </em>
-              </>
-            )}
-          </h2>
-          <p>
-            {staff
-              ? "Manage your community with clear permissions, considered decisions and an accountable record of every sensitive action."
-              : "Bring your social world together. Meet creators, find your community and turn everyday connections into something more."}
-          </p>
-          <div className="auth-constellation" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-            <span>
-              <Users size={35} />
-            </span>
-            <b>
-              <Globe2 size={25} />
-            </b>
-            <small>
-              <ShieldCheck size={22} />
-            </small>
-          </div>
-        </div>
-        <p className="auth-trust">
-          <ShieldCheck size={16} /> Your social passwords stay yours. Always.
-        </p>
-      </section>
-      <section className="auth-form-panel">
-        <Link className="auth-back" to="/">
-          <ArrowLeft size={15} />
-          Back to Danqel
-        </Link>
-        <div className="auth-form-content">
-          <div className="auth-eyebrow">{eyebrow}</div>
-          <h1>{title}</h1>
-          <p className="auth-subtitle">{subtitle}</p>
-          {children}
-        </div>
-        <div className="auth-footer">
-          <Link to="/privacy">Privacy</Link>
-          <span>·</span>
-          <Link to="/terms">Terms</Link>
-          <span>·</span>
-          <Link to="/support">Need help?</Link>
-        </div>
-      </section>
-    </main>
-  );
+  return <main className={'auth-atelier '+(staff?'auth-staff-edition':'')}><header className="auth-masthead"><Link className="design-brand" to="/"><span className="design-brand-mark">d.</span>{site.brand_name}</Link><Link to="/support">Need a hand? <ArrowUpRight size={14}/></Link></header><section className="auth-paper"><div className="auth-paper-symbol"><span>{staff?<LockKeyhole size={25}/>:<Users size={25}/>}</span><i/><i/></div><div className="auth-eyebrow">{eyebrow}</div><h1>{title}</h1><p className="auth-subtitle">{subtitle}</p>{children}</section><footer className="auth-paper-footer"><span><ShieldCheck size={14}/>Your social passwords stay yours.</span><nav><Link to="/">Home</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></nav></footer></main>;
 }
+
 const Notice = ({ error, message }) =>
   error ? (
     <p className="design-alert danger" role="alert">
