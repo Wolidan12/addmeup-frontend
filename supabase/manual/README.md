@@ -1,5 +1,7 @@
 # Owner-assisted recovery: missing admin functions
 
+> **Current status:** See [RELEASE_011.md](../../RELEASE_011.md) for stage 007–011 recovery, the latest owner evidence, tests and live-verification limitations. The earlier procedure below is historical: **do not replay completed 005/006 or the role grant.**
+
 Owner-provided SQL Editor screenshots show `is_admin()` exists, but `admin_role`, `admin_can`, `admin_list`, `admin_mutate`, `admin_overview`, `account_restrictions` and `member_overview` are absent. The intended existing account's email is confirmed, its ban is null and its assigned role is null. These are screenshot-established findings, not a direct privileged connection from Arena.
 
 The attempted role grant raised its missing-function guard before any role change. Do not bypass that guard, delete the database or recreate Auth users.

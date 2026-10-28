@@ -41,6 +41,10 @@ for row in objects:
         scan('git-blob:' + oid[:12], subprocess.check_output(['git','cat-file','blob',oid], cwd=root))
 for key, value in os.environ.items():
     if key.startswith('VITE_'): scan('frontend-env:' + key, value.encode())
+# Explicitly supplied local build/test logs are scanned without revealing values.
+for filename in sys.argv[1:]:
+    p = pathlib.Path(filename)
+    scan('external-log:' + p.name, p.read_bytes())
 print(f'Scanned {scanned} text sources/blobs, including dist when present; private values are never printed.')
 if findings:
     for label, kind in sorted(findings): print(f'REVIEW: {kind} in {label} [VALUE REDACTED]')
