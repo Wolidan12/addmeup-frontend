@@ -11,15 +11,26 @@ const userId='b0000000-0000-0000-0000-000000000001',planId='c0000000-0000-0000-0
 const profile={id:userId,username:'test_member',display_name:'Test Member',bio:'Test profile',country:'NG',interests:['music'],is_public:true,avatar_url:null}
 const site={id:true,brand_name:'Danqel Social Boost',hero_title:'Good connections. Greater reach.',hero_description:'Meet your community.',enabled_platforms:['whatsapp','instagram','snapchat','tiktok','facebook','x'],maintenance_mode:false,support_email:null}
 const overview={profile,balance:{balance:180,current_streak:2,referral_code:'DQ-TESTMEMBER',last_checkin:null},social_count:1,profile_views:3,referral_count:0,referral_earnings:0,referral_percent:0,referred_by:null,active_boost:null,recent_activity:[],unread_notifications:0,pending_orders:0,restricted:false,role:'super_admin'}
+let roleMode='admin',signInRejected=false
+const testUser={id:userId,email:'member@example.org',aud:'authenticated',role:'authenticated',email_confirmed_at:new Date().toISOString(),app_metadata:{provider:'email'},user_metadata:{},created_at:new Date().toISOString()}
+const exp=Math.floor(Date.now()/1000)+3600,jwt=Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url')+'.'+Buffer.from(JSON.stringify({sub:userId,role:'authenticated',aud:'authenticated',exp})).toString('base64url')+'.testsignature'
+const testSession={access_token:jwt,refresh_token:'test-refresh',expires_at:exp,expires_in:3600,token_type:'bearer',user:testUser}
 const exceptions=[]
 await context.route('https://test.supabase.co/**',async route=>{
  const url=new URL(route.request().url()),table=url.pathname.split('/').at(-1)
  let json=[]
+ if(table==='token'){
+  await route.fulfill({status:signInRejected?400:200,contentType:'application/json',body:JSON.stringify(signInRejected?{code:'invalid_credentials',error_code:'invalid_credentials',msg:'PRIVATE_INTERNAL_SENTINEL'}:testSession)});return
+ }
+ if(table==='user')json=testUser
+ if(table==='admin_role'&&roleMode==='error'){await route.fulfill({status:500,contentType:'application/json',body:JSON.stringify({message:'PRIVATE_INTERNAL_SENTINEL'})});return}
+ if(table==='admin_role'&&roleMode==='timeout'){await new Promise(r=>setTimeout(r,13000));try{await route.fulfill({status:200,contentType:'application/json',body:'null'})}catch{}return}
+
  if(table==='site_settings')json=site
  if(table==='member_overview')json=overview
  if(table==='public_directory'||table==='member_referrals')json={rows:[],total:0}
  if(table==='profiles')json=profile
- if(table==='admin_role')json='super_admin'
+ if(table==='admin_role')json=roleMode==='ordinary'?'user':'super_admin'
  if(table==='admin_overview')json={profiles:0,social_links:0,open_reports:0,revenue_kobo:0,bank_revenue_kobo:0,pending_bank_orders:0,pending_payments:0,trend:[]}
  if(table==='boost_plans')json=[{id:planId,title:'Test booster',multiplier:2,cost_points:50,duration_hours:24,bonus_cap:100,is_active:true}]
  if(table==='admin_list'){
@@ -32,7 +43,9 @@ await context.route('https://test.supabase.co/**',async route=>{
 })
 const page=await context.newPage();page.on('pageerror',error=>exceptions.push(error.message))
 await page.goto('http://localhost:5173/')
-await page.getByRole('heading',{name:'Good connections. Greater reach.'}).waitFor()
+await page.getByRole('heading',{name:/Good connections/}).waitFor()
+await page.screenshot({path:'/home/user/redesign-landing-desktop.png',fullPage:true})
+await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/home/user/redesign-landing-mobile.png',fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false);await page.setViewportSize({width:1440,height:1000})
 assert.equal(await page.getByText('Amara Okafor').count(),0)
 assert.equal(await page.getByText('Live — connected').count(),0)
 await page.evaluate(({userId})=>{
@@ -59,6 +72,22 @@ await page.goto('http://localhost:5173/admin?view=site_settings');await page.get
 await page.setViewportSize({width:390,height:844});await page.goto('http://localhost:5173/dashboard');await page.getByRole('heading',{name:/Hey, Test Member/}).waitFor();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false)
 await page.getByRole('button',{name:'Open navigation',exact:true}).click();await page.getByRole('navigation',{name:'Member workspace'}).getByRole('link',{name:'Referrals',exact:true}).click();await page.getByRole('heading',{name:'Grow together.'}).waitFor()
 await page.goto('http://localhost:5173/dashboard');await page.getByRole('heading',{name:/Hey, Test Member/}).waitFor();await page.screenshot({path:'/home/user/member-mobile-test.png',fullPage:true})
+// New commerce views read the signed-in account's records and render honest empty states.
+for(const [path,title]of [['promotions','A little more visibility.'],['subscriptions','Your plans, in one place.'],['payments','Your payment history.']]){
+ await page.goto('http://localhost:5173/'+path);await page.getByRole('heading',{name:title,exact:true}).waitFor();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false)
+}
+// Staff access behavior is mocked here; server permission enforcement is tested separately in PGlite.
+roleMode='ordinary';await page.goto('http://localhost:5173/admin');await page.getByRole('heading',{name:'This workspace is for authorized staff'}).waitFor();assert.equal(await page.getByRole('navigation',{name:'Administration'}).count(),0)
+roleMode='error';await page.reload();await page.getByRole('heading',{name:'We could not verify access'}).waitFor();assert.equal(await page.getByText('PRIVATE_INTERNAL_SENTINEL').count(),0)
+roleMode='admin';await page.getByRole('button',{name:'Try again',exact:true}).click();await page.getByRole('navigation',{name:'Administration'}).waitFor();await page.reload();await page.getByRole('navigation',{name:'Administration'}).waitFor()
+await page.screenshot({path:'/home/user/redesign-admin-mobile.png',fullPage:true})
+roleMode='timeout';await page.reload();await page.getByRole('heading',{name:'We could not verify access'}).waitFor({timeout:18000});roleMode='admin'
+await page.evaluate(()=>localStorage.removeItem('sb-test-auth-token'));await page.goto('http://localhost:5173/admin');await page.waitForURL('**/admin/login');await page.getByRole('heading',{name:'Staff sign in.'}).waitFor()
+await page.setViewportSize({width:1440,height:1000});await page.screenshot({path:'/home/user/redesign-staff-login.png',fullPage:true})
+signInRejected=true;await page.getByLabel('Email address',{exact:true}).fill('member@example.org');await page.getByLabel('Password',{exact:true}).fill('test-password-only');await page.getByRole('button',{name:'Continue to staff workspace'}).click();await page.getByRole('alert').filter({hasText:'The email or password is incorrect.'}).waitFor();assert.equal(await page.getByText('PRIVATE_INTERNAL_SENTINEL').count(),0)
+signInRejected=false;await page.getByRole('button',{name:'Continue to staff workspace'}).click();await page.getByRole('navigation',{name:'Administration'}).waitFor();await page.reload();await page.getByRole('navigation',{name:'Administration'}).waitFor();await page.screenshot({path:'/home/user/redesign-admin-desktop.png',fullPage:true})
+await page.goto('http://localhost:5173/verify?success=true');await page.getByRole('heading',{name:'You’re verified.'}).waitFor()
+await page.evaluate(()=>localStorage.removeItem('sb-test-auth-token'));await page.reload();await page.getByRole('heading',{name:'Check your inbox.'}).waitFor();assert.equal(await page.getByRole('heading',{name:'You’re verified.'}).count(),0)
 assert.deepEqual(exceptions,[])
 await browser.close()
-console.log('Browser smoke passed: public home, desktop/mobile workspace, referrals, boosters dialog, directory filters, photo/settings, wallet and admin configuration dialogs (mock network fixtures).')
+console.log('Browser smoke passed: commerce, mocked staff sign-in/refresh/denial/error/retry/timeout, verification anti-spoofing, sanitized login errors;  public home, desktop/mobile workspace, referrals, boosters dialog, directory filters, photo/settings, wallet and admin configuration dialogs (mock network fixtures).')

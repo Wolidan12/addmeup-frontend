@@ -1,10 +1,108 @@
-import {useSite} from '../context/SiteContext'
-import {Link,NavLink} from 'react-router-dom'; import {useState} from 'react'; import {useAuth} from '../context/AuthContext';
-export function Navbar(){const {user,signOut}=useAuth();const site=useSite();const [o,setO]=useState(false);const cls=({isActive})=>isActive?'text-white font-semibold':'text-violet-200'
- return <>
- <header className="sticky top-0 bg-[#0a0614]/90 backdrop-blur border-b border-violet-900"><nav className="max-w-6xl mx-auto flex items-center gap-4 p-4" aria-label="Main"><Link to="/" className="font-extrabold text-xl">{site.brand_name}<span className="text-violet-400">.</span></Link>
- <button className="ml-auto sm:hidden btn2" aria-expanded={o} aria-label="Toggle menu" onClick={()=>setO(!o)}>☰</button>
- <div className={`${o?'flex':'hidden'} sm:flex flex-col sm:flex-row gap-4 sm:ml-auto absolute sm:static top-full left-0 right-0 bg-[#0a0614] p-4 sm:p-0`}>
- <NavLink className={cls} to="/discover">Discover</NavLink><NavLink className={cls} to="/rewards">Rewards</NavLink>
- {user?<><NavLink className={cls} to="/dashboard">Dashboard</NavLink><button className="btn" onClick={signOut}>Log out</button></>:<><NavLink className={cls} to="/login">Log in</NavLink><Link className="btn" to="/register">Join Free</Link></>}</div></nav></header></>}
-export function Footer(){const site=useSite();return <footer className="border-t border-violet-900 mt-16"><div className="max-w-6xl mx-auto p-6 grid sm:grid-cols-3 gap-6 text-sm text-violet-200"><div><p className="font-bold text-white">{site.brand_name}</p><p>Good Connections. Greater Reach.</p></div><nav aria-label="Legal" className="flex flex-col gap-2"><Link to="/privacy">Privacy Policy</Link><Link to="/terms">Terms of Service</Link><Link to="/cookies">Cookie & Storage</Link><Link to="/support">Contact & Support</Link><Link to="/delete-account">Delete Account</Link></nav><p>iPhone: tap Share → Add to Home Screen to install. Android/desktop: use the browser Install prompt.</p><p>We never ask for your social media passwords and never automate follows, likes or messages.</p></div></footer>}
+import { Link, NavLink } from "react-router-dom";
+import { useState } from "react";
+import { ArrowUpRight, Menu, X, ShieldCheck } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { useSite } from "../context/SiteContext";
+export function Navbar() {
+  const { user } = useAuth(),
+    site = useSite(),
+    [open, setOpen] = useState(false);
+  return (
+    <header className="public-nav">
+      <div className="public-nav-inner">
+        <Link to="/" className="design-brand">
+          <span className="design-brand-mark">d.</span>
+          <span>
+            {site.brand_name}
+            <small>CONNECTIONS THAT GO FURTHER</small>
+          </span>
+        </Link>
+        <button
+          className="public-menu-toggle"
+          aria-label="Toggle menu"
+          aria-expanded={open}
+          onClick={() => setOpen(!open)}
+        >
+          {open ? <X size={22} /> : <Menu size={22} />}
+        </button>
+        <nav
+          className={open ? "public-links open" : "public-links"}
+          aria-label="Main navigation"
+        >
+          <NavLink onClick={() => setOpen(false)} to="/discover">
+            Discover
+          </NavLink>
+          <NavLink onClick={() => setOpen(false)} to="/rewards">
+            Rewards
+          </NavLink>
+          <NavLink onClick={() => setOpen(false)} to="/promotions">
+            Promotions
+          </NavLink>
+          <Link onClick={() => setOpen(false)} to="/support">
+            Support
+          </Link>
+          <span className="public-nav-separator" />
+          {user ? (
+            <Link className="design-button primary" to="/dashboard">
+              My workspace <ArrowUpRight size={16} />
+            </Link>
+          ) : (
+            <>
+              <Link className="public-login" to="/login">
+                Sign in
+              </Link>
+              <Link className="design-button primary" to="/register">
+                Get connected <ArrowUpRight size={16} />
+              </Link>
+            </>
+          )}
+        </nav>
+      </div>
+    </header>
+  );
+}
+export function Footer() {
+  const site = useSite();
+  return (
+    <footer className="public-footer">
+      <div className="public-footer-top">
+        <div>
+          <Link className="design-brand" to="/">
+            <span className="design-brand-mark">d.</span>
+            {site.brand_name}
+          </Link>
+          <p>
+            More than a link. A world of possibility.
+            <br />
+            Connect thoughtfully. Grow authentically.
+          </p>
+          <span className="footer-trust">
+            <ShieldCheck size={15} /> Your social passwords stay private.
+          </span>
+        </div>
+        <nav aria-label="Community">
+          <h2>Your community</h2>
+          <Link to="/discover">Discover creators</Link>
+          <Link to="/dashboard">Your workspace</Link>
+          <Link to="/referrals">Invite friends</Link>
+          <Link to="/boosts">Point boosters</Link>
+        </nav>
+        <nav aria-label="Help and policies">
+          <h2>Here for you</h2>
+          <Link to="/support">Help & support</Link>
+          <Link to="/privacy">Privacy policy</Link>
+          <Link to="/terms">Terms of service</Link>
+          <Link to="/cookies">Cookies & storage</Link>
+          <Link to="/delete-account">Account deletion</Link>
+        </nav>
+      </div>
+      <div className="public-footer-bottom">
+        <span>
+          © {new Date().getFullYear()} {site.brand_name}
+        </span>
+        <span>Built for real people. Not artificial engagement.</span>
+        <Link to="/admin/login">Staff sign in ↗</Link>
+      </div>
+    </footer>
+  );
+}

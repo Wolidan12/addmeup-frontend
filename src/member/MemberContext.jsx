@@ -1,3 +1,4 @@
+import {withTimeout} from '../lib/errors'
 import {createContext,useCallback,useContext,useEffect,useRef,useState} from 'react'
 import {useAuth} from '../context/AuthContext'
 import {supabase,isSupabaseConfigured} from '../lib/supabase'
@@ -8,7 +9,7 @@ export function MemberProvider({children}){
  const refresh=useCallback(async()=>{
   if(!isSupabaseConfigured){setError('Your workspace is temporarily unavailable. Please try again later.');setBusy(false);return}
   setBusy(true);setError('')
-  try{const {data,error}=await supabase.rpc('member_overview');if(error)throw error;setData(data)}catch{setError('We couldn’t refresh your workspace. Please try again.')}finally{setBusy(false)}
+  try{const {data,error}=await withTimeout(supabase.rpc('member_overview'));if(error)throw error;setData(data)}catch{setError('We couldn’t refresh your workspace. Please try again.')}finally{setBusy(false)}
  },[user.id])
  useEffect(()=>{setData(null);refresh();const timer=setInterval(()=>{if(document.visibilityState==='visible')refresh()},60000);return()=>clearInterval(timer)},[refresh])
  useEffect(()=>{if(!data||tried.current===user.id)return;tried.current=user.id

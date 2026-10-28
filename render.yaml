@@ -2,6 +2,7 @@ services:
   - type: web
     name: danqel-social-boost
     env: static
+    branch: main
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
     routes:
@@ -9,6 +10,12 @@ services:
         source: /*
         destination: /index.html
     headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache, max-age=0, must-revalidate
+      - path: /version.json
+        name: Cache-Control
+        value: no-store
       - path: /*
         name: X-Frame-Options
         value: DENY
@@ -20,7 +27,7 @@ services:
         value: strict-origin-when-cross-origin
     envVars:
       - key: NODE_VERSION
-        value: "20"
+        value: "22.22.3"
       - key: VITE_SUPABASE_URL
         value: https://lohlvenibvohoxtfucfa.supabase.co
       - key: VITE_SUPABASE_ANON_KEY

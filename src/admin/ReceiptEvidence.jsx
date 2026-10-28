@@ -1,9 +1,10 @@
+import {publicError,withTimeout} from '../lib/errors'
 import {useEffect,useState} from 'react'
 import {supabase} from '../lib/supabase'
 export default function ReceiptEvidence({path}){
  const [url,setUrl]=useState(''),[error,setError]=useState(''),[tick,setTick]=useState(0)
  useEffect(()=>{let active=true;setUrl('');setError('');if(!path)return
-  supabase.storage.from('bank-receipts').createSignedUrl(path,120).then(({data,error})=>{if(!active)return;if(error)setError(error.message);else setUrl(data.signedUrl)})
+  withTimeout(supabase.storage.from('bank-receipts').createSignedUrl(path,120)).then(({data,error})=>{if(!active)return;if(error)setError(publicError(error,'The receipt could not be opened. Please retry.'));else setUrl(data.signedUrl)}).catch(()=>{if(active)setError('The receipt could not be opened. Please retry.')})
   return()=>{active=false}
  },[path,tick])
  if(!path)return <p>No receipt submitted.</p>

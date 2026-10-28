@@ -1,3 +1,4 @@
+import {publicError} from '../lib/errors'
 import {useEffect,useRef,useState} from 'react'
 import {Link} from 'react-router-dom'
 import {ArrowUpRight,UserRound,Link2} from 'lucide-react'
@@ -17,12 +18,12 @@ export default function Settings(){
  async function save(e){e.preventDefault();setBusy(true);setMessage('');setError('');try{
   if(!USERNAME_RE.test(form.username))throw new Error('Use 3–24 lowercase letters, numbers or underscores for your username.')
   const {data,error}=await supabase.from('profiles').update({username:form.username,display_name:form.display_name,bio:form.bio,country:form.country,interests:form.interests.split(',').map(s=>s.trim()).filter(Boolean),is_public:form.is_public}).eq('id',user.id).select('id');if(error)throw error;if(!data.length)throw new Error('Your profile could not be updated.');setMessage('Your profile has been updated.');await refresh()
- }catch(e){setError(e.message)}finally{setBusy(false)}}
+ }catch(e){setError(publicError(e))}finally{setBusy(false)}}
  async function social(e){e.preventDefault();setBusy(true);setMessage('');setError('');try{
   if(!validSocialUrl(platform,url))throw new Error(`Use your official ${PLATFORM_LABELS[platform]} profile URL${platform==='whatsapp'?' or international phone number':''}.`)
   const normalized=platform==='whatsapp'?url.trim():(url.startsWith('https://')?url.trim():'https://'+url.trim())
   const {data,error}=await supabase.from('social_links').upsert({profile_id:user.id,platform,url:normalized,is_public:visible},{onConflict:'profile_id,platform'}).select('*').single();if(error)throw error;setLinks(old=>[...old.filter(l=>l.platform!==platform),data]);setMessage('Social link saved.');await refresh()
- }catch(e){setError(e.message)}finally{setBusy(false)}}
+ }catch(e){setError(publicError(e))}finally{setBusy(false)}}
  return <main><div className="member-page-heading"><div><p className="member-eyebrow">YOUR STORY. YOUR COMMUNITY.</p><h1>Make it yours.</h1><p>Build a profile that feels like you. Choose what you share.</p></div>{data?.profile&&<Link className="member-primary" to={'/profile/'+data.profile.username}>Preview profile <ArrowUpRight size={15}/></Link>}</div>
  <ProfilePhoto current={form.avatar_url} onSaved={avatar_url=>{setForm(f=>({...f,avatar_url}));refresh()}}/>
  <section className="member-panel member-settings-panel"><div className="member-panel-title"><div><h2>Profile details</h2><p>Your email stays private. Public profile details are visible to the community.</p></div><UserRound size={20}/></div><form onSubmit={save} className="member-settings-form"><label>Display name<input required minLength={1} maxLength={60} value={form.display_name} onChange={e=>setForm(f=>({...f,display_name:e.target.value}))}/></label><label>Username<input required pattern="[a-z0-9_]{3,24}" maxLength={24} value={form.username} onChange={e=>setForm(f=>({...f,username:e.target.value.toLowerCase()}))}/></label><label className="member-full-width">Bio<textarea maxLength={280} rows={3} value={form.bio||''} onChange={e=>setForm(f=>({...f,bio:e.target.value}))}/></label><label>Country<input maxLength={80} value={form.country||''} onChange={e=>setForm(f=>({...f,country:e.target.value}))}/></label><label>Interests (comma separated)<input value={form.interests} maxLength={500} onChange={e=>setForm(f=>({...f,interests:e.target.value}))}/></label><label className="member-check member-full-width"><input className="w-auto" type="checkbox" checked={form.is_public} onChange={e=>setForm(f=>({...f,is_public:e.target.checked}))}/>Show my profile in the public community directory</label><div className="member-full-width"><button className="member-primary" disabled={busy||!data||data.restricted}>{busy?'Saving…':'Save profile'}</button></div></form></section>
