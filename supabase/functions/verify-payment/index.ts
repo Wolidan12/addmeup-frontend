@@ -20,7 +20,7 @@ Deno.serve(async req => {
     await verifyAndSettle(reference)
     return reply(200, { verified: true })
   } catch (error) {
-    console.error('Payment verification failed', error instanceof Error ? error.message : 'Unknown error')
+    console.error('Payment verification failed; provider details redacted')
     return reply(422, { verified: false, error: 'Unable to verify and reconcile payment. Retry or contact finance.' })
   }
 })

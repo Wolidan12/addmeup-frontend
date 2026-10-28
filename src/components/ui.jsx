@@ -1,9 +1,134 @@
-import {useSite} from '../context/SiteContext'
-import PlatformLogo from './PlatformLogo'
-import {Link} from 'react-router-dom'
-import {socialHref} from '../lib/validation'
-export const LABELS={whatsapp:'WhatsApp',snapchat:'Snapchat',instagram:'Instagram',tiktok:'TikTok',facebook:'Facebook',x:'X'}
-export function SocialBadge({platform,url}){return <a className="badge social-badge" href={socialHref(platform,url)} target="_blank" rel="noopener noreferrer" aria-label={`Open ${LABELS[platform]} profile`}><PlatformLogo platform={platform}/>{LABELS[platform]}</a>}
-export function ProfileCard({p,onSave,saved}){const site=useSite();return <article className="card p-5"><div className="flex gap-3 items-center"><div className="w-12 h-12 rounded-full bg-violet-700 flex items-center justify-center font-bold overflow-hidden shrink-0" aria-hidden="true">{p.avatar_url?<img className="w-full h-full object-cover" src={p.avatar_url} alt="" loading="lazy" onError={e=>{e.currentTarget.style.display="none"}}/>:(p.display_name||p.username||'?')[0]}</div><div><Link className="font-semibold hover:underline" to={`/${p.managed?'listing':'profile'}/${p.username}`}>{p.display_name}</Link><p className="text-sm text-violet-300">@{p.username} · {p.country||''}</p></div>{p.managed&&<span className="badge ml-auto">Managed listing</span>}{p.is_sponsored&&<span className="badge ml-auto">Sponsored</span>}</div><p className="mt-3 text-sm text-violet-100/80">{p.bio}</p><div className="flex flex-wrap gap-2 mt-3">{(p.interests||[]).map(i=><span key={i} className="badge">{i}</span>)}</div><div className="flex flex-wrap gap-2 mt-3">{(p.social_links||[]).filter(l=>l.is_public&&site.enabled_platforms.includes(l.platform)).map(l=><SocialBadge key={l.platform} {...l}/>)}</div>{onSave&&<button className="btn2 mt-4" onClick={()=>onSave(p)} aria-pressed={saved}>{saved?'Saved ♥':'Save ☆'}</button>}</article>}
-export function States({loading,error,empty}){if(loading)return <p role="status" className="p-8 text-center">Loading…</p>; if(error)return <div role="alert" className="card p-6 text-red-300">{error}</div>; if(empty)return <div className="card p-8 text-center">No profiles match yet. Try widening your filters.</div>; return null}
-export function Modal({open,onClose,title,children}){if(!open)return null; return <div className="fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-50" role="dialog" aria-modal="true" aria-label={title}><div className="card p-6 w-full max-w-md"><div className="flex justify-between"><h2 className="font-bold text-lg">{title}</h2><button onClick={onClose} aria-label="Close dialog">✕</button></div>{children}</div></div>}
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { MapPin, ArrowUpRight, Bookmark, Check, Link2 } from "lucide-react";
+import { useSite } from "../context/SiteContext";
+import PlatformLogo from "./PlatformLogo";
+import { socialHref, validSocialUrl } from "../lib/validation";
+export const LABELS = {
+  whatsapp: "WhatsApp",
+  snapchat: "Snapchat",
+  instagram: "Instagram",
+  tiktok: "TikTok",
+  facebook: "Facebook",
+  x: "X",
+};
+export function SocialBadge({ platform, url }) {
+  if (!validSocialUrl(platform, url)) return null;
+  return (
+    <a
+      className="creator-social"
+      href={socialHref(platform, url)}
+      target="_blank"
+      rel="noopener noreferrer"
+      referrerPolicy="no-referrer"
+      aria-label={`Open ${LABELS[platform]} profile`}
+    >
+      <PlatformLogo platform={platform} size={24} />
+      <span>{LABELS[platform]}</span>
+      <ArrowUpRight size={12} />
+    </a>
+  );
+}
+export function ProfileCard({ p, onSave, saved }) {
+  const site = useSite(),
+    [imageFailed, setImageFailed] = useState(false),
+    path = `/${p.managed ? "listing" : "profile"}/${p.username}`,
+    links = (p.social_links || []).filter(
+      (l) =>
+        l.is_public &&
+        site.enabled_platforms.includes(l.platform) &&
+        validSocialUrl(l.platform, l.url),
+    );
+  return (
+    <article className="creator-card">
+      <div className="creator-card-cover">
+        <span>
+          <Link2 size={15} />{" "}
+          {p.managed
+            ? "Managed listing"
+            : p.is_sponsored
+              ? "Sponsored creator"
+              : "Community creator"}
+        </span>
+        {onSave && (
+          <button
+            type="button"
+            onClick={() => onSave(p)}
+            aria-pressed={saved}
+            aria-label={saved ? "Unsave creator" : "Save creator"}
+          >
+            {saved ? <Check size={17} /> : <Bookmark size={17} />}
+          </button>
+        )}
+      </div>
+      <div className="creator-card-main">
+        <Link
+          to={path}
+          className="creator-avatar"
+          aria-label={`${p.display_name} profile`}
+        >
+          {p.avatar_url && !imageFailed ? (
+            <img
+              src={p.avatar_url}
+              alt=""
+              loading="lazy"
+              onError={() => setImageFailed(true)}
+            />
+          ) : (
+            <span>{(p.display_name || p.username || "?")[0]}</span>
+          )}
+        </Link>
+        <Link to={path} className="creator-name">
+          {p.display_name}
+        </Link>
+        <p className="creator-handle">@{p.username}</p>
+        {p.country && (
+          <span className="creator-location">
+            <MapPin size={12} />
+            {p.country}
+          </span>
+        )}
+        <p className="creator-bio">
+          {p.bio || "A new connection waiting to happen."}
+        </p>
+        <div className="creator-interests">
+          {(p.interests || []).slice(0, 3).map((i) => (
+            <span key={i}>{i}</span>
+          ))}
+          {p.interests?.length > 3 && <span>+{p.interests.length - 3}</span>}
+        </div>
+        <div className="creator-socials">
+          {links.map((l) => (
+            <SocialBadge key={l.platform} {...l} />
+          ))}
+        </div>
+        <Link className="creator-profile-link" to={path}>
+          Discover this creator <ArrowUpRight size={16} />
+        </Link>
+      </div>
+    </article>
+  );
+}
+export function States({ loading, error, empty }) {
+  if (loading)
+    return (
+      <div className="design-empty" role="status">
+        <span className="design-loader" />
+        Loading profile…
+      </div>
+    );
+  if (error)
+    return (
+      <div role="alert" className="design-alert danger">
+        {error}
+      </div>
+    );
+  if (empty)
+    return (
+      <div className="design-empty">
+        <h2>No profiles found</h2>
+        <p>Try widening your filters.</p>
+      </div>
+    );
+  return null;
+}

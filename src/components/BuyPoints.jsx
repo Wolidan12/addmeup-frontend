@@ -1,3 +1,4 @@
+import {publicError} from '../lib/errors'
 import {useCallback,useEffect,useRef,useState} from 'react'
 import {useAuth} from '../context/AuthContext'
 import {supabase,isSupabaseConfigured} from '../lib/supabase'
@@ -7,7 +8,7 @@ export default function BuyPoints({onChanged}){
  const {user}=useAuth(),[packages,setPackages]=useState([]),[orders,setOrders]=useState([]),[page,setPage]=useState(0),[total,setTotal]=useState(0),[busy,setBusy]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[selected,setSelected]=useState(null),[payer,setPayer]=useState(''),[reference,setReference]=useState(''),[file,setFile]=useState(null)
  const modal=useRef(null),receipt=useRef(null),requests=useRef(new Map())
  const load=useCallback(async()=>{if(!isSupabaseConfigured)return;setLoading(true);setError('')
-  try{const [p,o]=await Promise.all([supabase.from('point_packages').select('*').eq('is_active',true).order('price_kobo').limit(100),supabase.from('bank_point_orders').select('*',{count:'exact'}).eq('user_id',user.id).order('created_at',{ascending:false}).range(page*10,page*10+9)]);if(p.error||o.error)throw p.error||o.error;setPackages(p.data);setOrders(o.data);setTotal(o.count);onChanged?.()}catch(e){setError(e.message)}finally{setLoading(false)}
+  try{const [p,o]=await Promise.all([supabase.from('point_packages').select('*').eq('is_active',true).order('price_kobo').limit(100),supabase.from('bank_point_orders').select('*',{count:'exact'}).eq('user_id',user.id).order('created_at',{ascending:false}).range(page*10,page*10+9)]);if(p.error||o.error)throw p.error||o.error;setPackages(p.data);setOrders(o.data);setTotal(o.count);onChanged?.()}catch(e){setError(publicError(e))}finally{setLoading(false)}
  },[user.id,page,onChanged])
  useEffect(()=>{load()},[load])
  useEffect(()=>{if(selected)modal.current?.showModal()},[selected])
@@ -16,15 +17,15 @@ export default function BuyPoints({onChanged}){
   if(!requests.current.has(pkg.id))requests.current.set(pkg.id,crypto.randomUUID())
   const {data:id,error}=await supabase.rpc('create_bank_point_order',{p_package:pkg.id,p_request:requests.current.get(pkg.id)});if(error)throw error
   const {data,error:lookup}=await supabase.from('bank_point_orders').select('*').eq('id',id).single();if(lookup)throw lookup;requests.current.delete(pkg.id);open(data);await load()
- }catch(e){setError(e.message)}finally{setBusy(false)}}
+ }catch(e){setError(publicError(e))}finally{setBusy(false)}}
  async function submit(e){e.preventDefault();setBusy(true);setError('')
   try{
    if(!receipt.current){if(!file)throw new Error('Choose a payment receipt image.');receipt.current=(await uploadImage('bank-receipts',`${user.id}/${selected.id}`,file)).path}
    const {error}=await supabase.rpc('submit_bank_point_order',{p_order:selected.id,p_payer:payer,p_reference:reference,p_receipt:receipt.current});if(error)throw error
    setSelected(null);setMessage('Payment evidence submitted. Points will be added only after the bank transfer is confirmed by finance.');await load()
-  }catch(e){setError(e.message)}finally{setBusy(false)}
+  }catch(e){setError(publicError(e))}finally{setBusy(false)}
  }
- async function cancel(order){if(!window.confirm('Cancel this unpaid order? Do not cancel if you have already transferred money.'))return;setBusy(true);setError('');try{const {error}=await supabase.rpc('cancel_bank_point_order',{p_order:order.id});if(error)throw error;await load()}catch(e){setError(e.message)}finally{setBusy(false)}}
+ async function cancel(order){if(!window.confirm('Cancel this unpaid order? Do not cancel if you have already transferred money.'))return;setBusy(true);setError('');try{const {error}=await supabase.rpc('cancel_bank_point_order',{p_order:order.id});if(error)throw error;await load()}catch(e){setError(publicError(e))}finally{setBusy(false)}}
  if(!isSupabaseConfigured)return null
  return <section className="mt-10" aria-labelledby="buy-title"><div className="flex justify-between gap-3 items-center"><div><h2 id="buy-title" className="text-xl font-bold">Buy points by bank transfer</h2><p className="text-sm text-violet-300 mt-2">Pay to Moniepoint. An authorized admin must confirm the funds before points are credited.</p></div><button className="btn2 text-xs" disabled={loading||busy} onClick={load}>Refresh</button></div>
  {error&&!selected&&<p role="alert" className="text-rose-300 my-3">{error}</p>}{message&&<p role="status" className="text-emerald-300 my-3">{message}</p>}

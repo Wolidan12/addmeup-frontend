@@ -1,3 +1,4 @@
+import {publicError} from '../lib/errors'
 import ReceiptEvidence from './ReceiptEvidence'
 import {useEffect,useRef,useState} from 'react'
 import {supabase} from '../lib/supabase'
@@ -15,7 +16,7 @@ export default function ActionDialog({operation,onClose,onSaved}){
     :await supabase.rpc('admin_mutate',{p_action:action,p_target:row.id||row.user_id||row.key,p_value:payload,p_reason:reason.trim(),p_request:request.current})
    if(error)throw error
    onSaved(`${label} completed and audit-logged.`);onClose()
-  }catch(e){setError(e.message)}finally{setBusy(false)}
+  }catch(e){setError(publicError(e,'We could not complete this staff action. Please retry or contact the platform owner.'))}finally{setBusy(false)}
  }
  return <dialog ref={dialog} className="ad-dialog" aria-labelledby="action-title" onCancel={e=>{if(busy)e.preventDefault();else onClose()}}>
  <form onSubmit={submit}><div className="ad-eyebrow">CONTROLLED ACTION</div><h2 id="action-title">{label}</h2><p>Target: <code>{row.username||row.id||row.user_id||row.key}</code></p><p className="ad-muted">This action changes live data. Authorization is checked in the database and the action is recorded in the audit trail.</p>

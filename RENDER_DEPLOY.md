@@ -1,3 +1,5 @@
+> **Current deployment troubleshooting:** If you still see the green Supabase/demo banner or old Discover page, follow **[DEPLOYMENT_RECOVERY.md](DEPLOYMENT_RECOVERY.md)** first. The merged dashboard release requires schema/migration review through **010**, not only 004–005. The historical checklist below predates that release; do not treat its migration list as complete or rerun bootstrap SQL on existing tables.
+
 # Danqel — Render + Supabase (exact settings)
 ## Render Static Site (frontend ONLY — no Node/Express backend)
 Render Dashboard -> New -> Static Site -> connect GitHub repo Wolidan12/addmeup-frontend (branch with latest code / merged PR)
