@@ -40,7 +40,7 @@ export default function ActivityCenter({ rankings = false }) {
                 <Trophy size={19} />
               </div>
               <strong>
-                {data ? Number(data.balance.balance).toLocaleString() : "—"}
+                {data?.balance?.balance!=null ? Number(data.balance.balance).toLocaleString() : "—"}
               </strong>
               <small>Private account balance · not a public ranking</small>
             </article>
@@ -50,7 +50,7 @@ export default function ActivityCenter({ rankings = false }) {
                 <Flame size={19} />
               </div>
               <strong>
-                {data ? data.balance.current_streak : "—"} <small>days</small>
+                {data ? data.balance?.current_streak : "—"} <small>days</small>
               </strong>
               <small>One eligible check-in at a time</small>
             </article>

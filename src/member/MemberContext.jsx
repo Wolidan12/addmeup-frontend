@@ -1,3 +1,4 @@
+import {validateMemberOverview} from './memberData'
 import { withTimeout } from "../lib/errors";
 import {
   createContext,
@@ -35,13 +36,13 @@ export function MemberProvider({ children }) {
       const result = await withTimeout(supabase.rpc("member_overview"));
       if (result.error) throw result.error;
       if (request === generation.current) {
-        if (result.data?.profile?.id !== user.id)
-          throw new Error("Account changed");
-        setData(result.data);
+        setData(validateMemberOverview(result.data,user.id));
       }
     } catch {
-      if (request === generation.current)
-        setError("We couldn’t refresh your workspace. Please try again.");
+      if (request === generation.current) {
+        setData(null);
+        setError("We couldn’t load your account data. No balance is shown until it can be verified. Please retry.");
+      }
     } finally {
       if (request === generation.current) setBusy(false);
     }
@@ -100,7 +101,7 @@ export function MemberProvider({ children }) {
     };
   }, [data, user.id]);
   return (
-    <C.Provider value={{ data, error, busy, refresh, referralNotice }}>
+    <C.Provider value={{ data:data?.profile?.id===user.id?data:null, error, busy, refresh, referralNotice }}>
       {children}
     </C.Provider>
   );

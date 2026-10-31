@@ -246,7 +246,7 @@ export default function Settings() {
         <div>
           <span>Growth Credits</span>
           <strong>
-            {data ? Number(data.balance.balance).toLocaleString() : "—"}
+            {data?.balance?.balance!=null ? Number(data.balance.balance).toLocaleString() : "—"}
           </strong>
           <small>Private balance · not editable here</small>
         </div>

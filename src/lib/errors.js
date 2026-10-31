@@ -1,3 +1,4 @@
+import {missingBackend,backendUpgradeMessage} from './backendAvailability.js';
 export class InputError extends Error {}
 // Never render an arbitrary database/provider exception in the customer interface.
 const messages = {
@@ -94,6 +95,7 @@ export function publicError(
   error,
   fallback = "We could not complete that action. Please try again.",
 ) {
+  if (missingBackend(error)) return backendUpgradeMessage;
   if (error instanceof InputError) return error.message;
   if (messages[error?.code]) return messages[error.code];
   if (error?.code === "23505")
