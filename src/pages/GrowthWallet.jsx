@@ -1,3 +1,6 @@
+import {loadMemberWallet} from '../member/memberData'
+import LegacyMemberWallet from '../member/LegacyMemberWallet'
+import {useAuth} from '../context/AuthContext'
 import CouponRedemption from '../components/CouponRedemption'
 import WorkspaceNav from '../components/WorkspaceNav'
 import {useEffect,useState} from 'react'
@@ -5,13 +8,14 @@ import {Link} from 'react-router-dom'
 import {Wallet,ArrowDownToLine,ArrowUpRight,Gift,ShoppingBag,RefreshCw,ShieldCheck} from 'lucide-react'
 import {useMember} from '../member/MemberContext'
 import {supabase} from '../lib/supabase'
-import {withTimeout,publicError} from '../lib/errors'
+import {publicError} from '../lib/errors'
 import {formatDC,dcDisclosure} from '../lib/credits'
 import {EmptyState} from '../components/Experience'
 export default function GrowthWallet(){
- const {refresh}=useMember(),[wallet,setWallet]=useState(null),[kind,setKind]=useState('transactions'),[status,setStatus]=useState(''),[page,setPage]=useState(0),[version,setVersion]=useState(0),[busy,setBusy]=useState(true),[error,setError]=useState('')
- useEffect(()=>{let active=true;setBusy(true);setError('');withTimeout(supabase.rpc('dc_wallet',{p_kind:kind,p_status:status,p_page:page})).then(({data,error})=>{if(!active)return;if(error)throw error;setWallet(data)}).catch(e=>{if(active){setWallet(null);setError(publicError(e,'Your verified wallet could not be loaded. Please retry.'))}}).finally(()=>{if(active)setBusy(false)});return()=>{active=false}},[kind,status,page,version])
+ const {user}=useAuth(),{refresh}=useMember(),[legacy,setLegacy]=useState(null),[wallet,setWallet]=useState(null),[kind,setKind]=useState('transactions'),[status,setStatus]=useState(''),[page,setPage]=useState(0),[version,setVersion]=useState(0),[busy,setBusy]=useState(true),[error,setError]=useState('')
+ useEffect(()=>{let active=true;setBusy(true);setError('');setWallet(null);setLegacy(null);loadMemberWallet(supabase,user.id,{kind,status,page}).then(result=>{if(!active)return;if(result.mode==='legacy')setLegacy(result.data);else setWallet(result.data)}).catch(e=>{if(active){setWallet(null);setError(publicError(e,'Your verified wallet could not be loaded. Please retry.'))}}).finally(()=>{if(active)setBusy(false)});return()=>{active=false}},[kind,status,page,version,user.id])
  function reload(){setVersion(v=>v+1);refresh()}
+ if(legacy)return <LegacyMemberWallet wallet={legacy} kind={kind} page={page} status={status} onKind={value=>{setKind(value);setStatus('');setPage(0)}} onStatus={value=>{setStatus(value);setPage(0)}} onPage={setPage} onRefresh={reload}/>
  return <main className="dc-wallet"><WorkspaceNav/><div className="member-page-heading"><div><p className="member-eyebrow">DANQEL GROWTH CREDITS / DC</p><h1>Growth Wallet.</h1><p>Your credits. Your next move. Every balance comes from the database.</p></div><button className="btn2" disabled={busy} onClick={reload}><RefreshCw size={16}/>Refresh</button></div>
  <section className="dc-wallet-hero"><div><span className="signal-eyebrow"><i/> YOUR AVAILABLE GROWTH CREDITS</span><strong>{wallet?formatDC(wallet.balance):'— DC'}</strong><p>Official exchange rate <b>₦1 = 1 DC</b></p><span className="dc-wallet-trust"><ShieldCheck size={15}/> Verified database balance · no cash withdrawal</span></div><Wallet size={90} strokeWidth={1}/><Link className="member-primary" to="/credits"><ArrowDownToLine size={17}/>Deposit</Link></section>
  <nav className="premium-destination-grid dc-wallet-actions" aria-label="Wallet actions">{[['/credits','Buy Credits',Wallet,'Verified naira deposits'],['/missions','Earn Credits',Gift,'Eligible, verified rewards'],['/spend-credits','Spend Credits',ShoppingBag,'Premium feature requests'],['/discover','Connect for free',ArrowUpRight,'No DC deducted for connections']].map(([to,title,Icon,description])=><Link key={title} to={to}><Icon size={23}/><h2>{title}</h2><p>{description}</p><ArrowUpRight size={18}/></Link>)}</nav>
