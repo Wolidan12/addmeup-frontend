@@ -4,7 +4,7 @@ import { PLATFORMS } from "../lib/validation";
 import { InputError, publicError, withTimeout } from "../lib/errors";
 import { supabase } from "../lib/supabase";
 const empty = { key: "", label: "", hosts: "", enabled: true, reason: "" };
-export default function SocialPlatformSettings() {
+export default function SocialPlatformSettings({onSaved}) {
   const site = useSite(),
     [form, setForm] = useState(empty),
     [busy, setBusy] = useState(false),
@@ -66,6 +66,7 @@ export default function SocialPlatformSettings() {
         "Platform configuration saved and audit-logged. Existing links are never marked ownership-verified.",
       );
       setForm(empty);
+      onSaved?.();
     } catch (e) {
       setError(
         publicError(
