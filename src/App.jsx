@@ -1,8 +1,7 @@
 import { lazy, Suspense } from "react";
 import { SiteProvider } from "./context/SiteContext";
-import { MemberProvider } from "./member/MemberContext";
-import MemberLayout from "./member/MemberLayout";
-import MemberDashboard from "./pages/MemberDashboard";
+const MemberDashboard=lazy(()=>import("./pages/MemberDashboard"));
+const MemberShell=lazy(()=>import("./member/MemberShell"));
 import {
   BrowserRouter,
   Routes,
@@ -22,6 +21,14 @@ import {
   DeleteAccount,
   NotFound,
 } from "./pages/Legal";
+const Install = lazy(() => import('./pages/Install'));
+const Connections = lazy(() => import('./pages/Connections'));
+const ActivityCenter = lazy(() => import('./pages/ActivityCenter'));
+const ReleaseNotes = lazy(() => import("./pages/ReleaseNotes"));
+const BoostCenter = lazy(() => import("./pages/BoostCenter"));
+const MissionHub = lazy(() => import("./pages/MissionHub"));
+const GrowthWallet = lazy(() => import("./pages/GrowthWallet"));
+const SpendCredits = lazy(() => import("./pages/SpendCredits"));
 const Commerce = lazy(() => import("./pages/Commerce"));
 const Referrals = lazy(() => import("./pages/Referrals"));
 const Boosters = lazy(() => import("./pages/Boosters"));
@@ -79,10 +86,11 @@ function SiteFrame({ children }) {
     user &&
     ([
       "/dashboard",
+      "/connections", "/wallet", "/spend-credits", "/missions", "/credits", "/notifications", "/leaderboard",
       "/discover",
       "/rewards",
       "/referrals",
-      "/boosts",
+      "/boosts", "/reward-boosts",
       "/settings",
       "/promotions",
       "/subscriptions",
@@ -91,9 +99,7 @@ function SiteFrame({ children }) {
       pathname.startsWith("/profile/") ||
       pathname.startsWith("/listing/"));
   return member ? (
-    <MemberProvider>
-      <MemberLayout>{children}</MemberLayout>
-    </MemberProvider>
+    <Suspense fallback={<main className="route-state" role="status">Opening your workspace…</main>}><MemberShell key={user.id}>{children}</MemberShell></Suspense>
   ) : (
     <>
       <Navbar />
@@ -116,6 +122,15 @@ export default function App() {
               }
             >
               <Routes>
+                <Route path="/connections" element={<Guard><Connections/></Guard>}/>
+                <Route path="/wallet" element={<Guard><GrowthWallet/></Guard>}/>
+                <Route path="/reward-boosts" element={<Guard><Boosters/></Guard>}/>
+                <Route path="/spend-credits" element={<Guard><BoostCenter/></Guard>}/>
+                <Route path="/missions" element={<Guard><MissionHub/></Guard>}/>
+                <Route path="/credits" element={<Guard><Rewards mode="credits"/></Guard>}/>
+                <Route path="/release-notes" element={<ReleaseNotes/>}/>
+                <Route path="/notifications" element={<Guard><ActivityCenter/></Guard>}/>
+                <Route path="/leaderboard" element={<Guard><ActivityCenter rankings/></Guard>}/>
                 <Route
                   path="/promotions"
                   element={
@@ -160,7 +175,7 @@ export default function App() {
                   path="/boosts"
                   element={
                     <Guard>
-                      <Boosters />
+                      <BoostCenter />
                     </Guard>
                   }
                 />
@@ -189,7 +204,7 @@ export default function App() {
                   path="/rewards"
                   element={
                     <Guard>
-                      <Rewards />
+                      <MissionHub />
                     </Guard>
                   }
                 />
@@ -204,6 +219,7 @@ export default function App() {
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/cookies" element={<Cookies />} />
+                <Route path="/install" element={<Install />} />
                 <Route path="/support" element={<Support />} />
                 <Route path="/delete-account" element={<DeleteAccount />} />
                 <Route path="*" element={<NotFound />} />

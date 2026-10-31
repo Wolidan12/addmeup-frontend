@@ -1,3 +1,5 @@
+import LaunchPromotion from '../components/LaunchPromotion'
+import {BrandScene} from '../components/Experience'
 import { withTimeout } from "../lib/errors";
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
@@ -68,13 +70,14 @@ export default function Home() {
   if (user) return <Navigate to="/dashboard" replace />;
   return (
     <main className="landing-v2">
+      <LaunchPromotion/>
       <section className="landing-hero landing-editorial">
         <div className="landing-hero-copy">
           <span className="design-kicker">
             <span />
-            YOUR SOCIAL WORLD, REIMAGINED
+            CONNECT. ENGAGE. GROW.
           </span>
-          <h1>{site.hero_title}<br/><em>Real people.<br/>More possibility.</em></h1>
+          <h1>Your world.<br/>Better <em>connected.</em></h1><p className="landing-configured-title">{site.hero_title}</p>
           <p>{site.hero_description}</p>
           <div className="landing-hero-actions">
             <Link className="design-button primary" to="/register">
@@ -93,32 +96,7 @@ export default function Home() {
             </span>
           </div>
         </div>
-        <div
-          className="landing-network"
-          aria-label="Illustration of connected social platforms"
-        >
-          <div className="network-ring r1" />
-          <div className="network-ring r2" />
-          <div className="network-ring r3" />
-          <div className="network-core">
-            <Link2 size={54} />
-            <span>
-              YOUR WORLD.
-              <br />
-              CONNECTED.
-            </span>
-          </div>
-          {site.enabled_platforms.map((p, i) => (
-            <div className={"network-platform np-" + i} key={p}>
-              <PlatformLogo platform={p} size={53} />
-              <span>{PLATFORM_LABELS[p]}</span>
-            </div>
-          ))}
-          <span className="network-note">
-            <span />
-            Made for human connection
-          </span>
-        </div>
+        <BrandScene/>
       </section>
       {site.maintenance_mode && (
         <p className="design-alert landing-maintenance" role="status">

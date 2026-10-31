@@ -1,4 +1,4 @@
-import {USERNAME_RE,PLATFORMS,validSocialUrl,socialHref} from './validation.js'
+import {USERNAME_RE,MANAGED_PLATFORMS as PLATFORMS,validSocialUrl,socialHref} from './validation.js'
 export const newManagedDraft=()=>({key:crypto.randomUUID(),username:'',display_name:'',bio:'',country:'',interests:'',avatar_url:'',is_public:false,links:{}})
 export function prepareManagedBatch(drafts){
  if(!Array.isArray(drafts)||drafts.length<1||drafts.length>25)throw new Error('Add between 1 and 25 profiles.')
@@ -13,4 +13,14 @@ export function prepareManagedBatch(drafts){
   const social_links=PLATFORMS.filter(p=>d.links[p]?.trim()).map(platform=>{const url=d.links[platform].trim();if(!validSocialUrl(platform,url))fail(`use an official ${platform} link.`);return {platform,url:socialHref(platform,url),is_public:true}})
   return {username,display_name:name,bio:d.bio,country:d.country,interests:[...new Set(interests)],avatar_url:d.avatar_url||'',is_public:!!d.is_public,social_links}
  })
+}
+
+// Single edits share the bulk validator, without silently publishing existing private links.
+export function prepareManagedEdit(form,links,previousLinks=[]){
+ const [payload]=prepareManagedBatch([{...form,links}])
+ payload.social_links=payload.social_links.map(link=>{
+  const previous=previousLinks.find(p=>p.platform===link.platform)
+  return {...link,is_public:previous?previous.is_public===true:true}
+ })
+ return payload
 }

@@ -1,3 +1,4 @@
+import BrandLogo from './BrandLogo';
 import { Link, NavLink } from "react-router-dom";
 import { useState } from "react";
 import { ArrowUpRight, Menu, X, ShieldCheck } from "lucide-react";
@@ -11,11 +12,7 @@ export function Navbar() {
     <header className="public-nav">
       <div className="public-nav-inner">
         <Link to="/" className="design-brand">
-          <span className="design-brand-mark">d.</span>
-          <span>
-            {site.brand_name}
-            <small>CONNECTIONS THAT GO FURTHER</small>
-          </span>
+          <BrandLogo name={site.brand_name}/>
         </Link>
         <button
           className="public-menu-toggle"
@@ -68,8 +65,7 @@ export function Footer() {
       <div className="public-footer-top">
         <div>
           <Link className="design-brand" to="/">
-            <span className="design-brand-mark">d.</span>
-            {site.brand_name}
+            <BrandLogo name={site.brand_name}/>
           </Link>
           <p>
             More than a link. A world of possibility.
@@ -90,6 +86,7 @@ export function Footer() {
         <nav aria-label="Help and policies">
           <h2>Here for you</h2>
           <Link to="/support">Help & support</Link>
+          <Link to="/install">Install app</Link>
           <Link to="/privacy">Privacy policy</Link>
           <Link to="/terms">Terms of service</Link>
           <Link to="/cookies">Cookies & storage</Link>

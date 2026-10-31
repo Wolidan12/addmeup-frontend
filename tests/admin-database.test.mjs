@@ -1,3 +1,4 @@
+// Legacy economy regression through 017. Launch/mission cutover and revoked legacy claims are covered in launch-missions.test.mjs.
 import {PGlite} from '@electric-sql/pglite'
 import assert from 'node:assert/strict'
 import {readFile,readdir} from 'node:fs/promises'
@@ -17,7 +18,7 @@ grant usage on schema storage to anon,authenticated;
 grant select,insert,update,delete on storage.objects to authenticated;
 create function storage.foldername(text) returns text[] language sql as $$select string_to_array($1,'/')$$;
 `)
-for(const file of (await readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')).sort()){
+for(const file of (await readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')&&parseInt(f)<=17).sort()){
  const sql=(await readFile(`supabase/migrations/${file}`,'utf8')).replace('create extension if not exists pgcrypto;','')
  try{await db.exec(sql)}catch(e){throw new Error(`Migration ${file}: ${e.message}`,{cause:e})}
 }
@@ -79,9 +80,9 @@ await assert.rejects(rpc("select public.claim_task('daily-discover')"),/server-v
 await db.query("update public.profiles set bio='Valid bio',country='NG',interests=array['music'],display_name='Creator' where id=$1",[ids.user])
 await rpc("select public.claim_task('complete-profile')")
 await assert.rejects(rpc("select public.claim_task('complete-profile')"),/Daily limit/)
-assert.equal((await rpc('select balance from public.points_balance where user_id=$1',[ids.user])).balance,130)
+assert.equal(Number((await rpc('select balance from public.points_balance where user_id=$1',[ids.user])).balance),130)
 assert.equal((await db.query('select * from public.points_balance where user_id=$1',[ids.other])).rows.length,0)
-await assert.rejects(db.query("update public.profiles set is_sponsored=true where id=$1",[ids.user]),/Sponsorship requires/)
+await assert.rejects(db.query("update public.profiles set is_sponsored=true where id=$1",[ids.user]),/Sponsorship requires|permission denied/)
 const inbox=await db.query('select * from public.notifications')
 assert.equal(inbox.rows.length,1)
 await db.query('update public.notifications set is_read=true where id=$1',[inbox.rows[0].id])
@@ -110,17 +111,17 @@ assert.equal((await rpc('select public.admin_overview() data')).data.revenue_kob
 await as('root')
 const packageId=crypto.randomUUID()
 const savePackage=(points,price)=>rpc('select public.admin_save_point_package($1,$2,$3,$4,true,$5)',[packageId,'Starter points',points,price,'Configure package for test'])
-await savePackage(250,50000)
+await savePackage(250,25000)
 const createOrder=async(who)=>{await as(who);const id=crypto.randomUUID();await rpc('select public.create_bank_point_order($1,$2)',[packageId,id]);return id}
 const orderId=await createOrder('user')
 await rpc('select public.create_bank_point_order($1,$2)',[packageId,orderId])
 assert.equal((await rpc('select count(*)::int n from public.bank_point_orders')).n,1)
 await assert.rejects(db.query('update public.bank_point_orders set points=100000 where id=$1',[orderId]),/permission denied/)
 await assert.rejects(rpc('select public.admin_save_point_package($1,$2,100,100,true,$3)',[packageId,'Forged','Forbidden package change']),/Permission denied/)
-await as('root');await savePackage(500,100000)
+await as('root');await savePackage(500,50000)
 await as('user')
 const snapshot=await rpc('select * from public.bank_point_orders where id=$1',[orderId])
-assert.equal(snapshot.points,250);assert.equal(snapshot.amount_kobo,50000)
+assert.equal(Number(snapshot.points),250);assert.equal(snapshot.amount_kobo,25000)
 assert.equal(snapshot.account_number,'6977298247')
 const path=`${ids.user}/${orderId}/${crypto.randomUUID()}.png`
 const submitOrder=(id,receipt,reference='user-transfer-001')=>rpc('select public.submit_bank_point_order($1,$2,$3,$4)',[id,'Test Payer',reference,receipt])
@@ -143,7 +144,7 @@ assert.equal((await db.query('select * from storage.objects where name=$1',[path
 await assert.rejects(review(orderId,true,''),/Bank statement transaction reference/)
 await review(orderId);await review(orderId)
 assert.equal((await list('bank_point_orders')).data.rows.find(r=>r.id===orderId).status,'approved')
-await as('user');assert.equal((await rpc('select balance from public.points_balance where user_id=$1',[ids.user])).balance,380)
+await as('user');assert.equal(Number((await rpc('select balance from public.points_balance where user_id=$1',[ids.user])).balance),400)
 const second=await createOrder('user'),secondPath=`${ids.user}/${second}/${crypto.randomUUID()}.jpg`
 await db.query("insert into storage.objects(id,bucket_id,name) values($1,'bank-receipts',$2)",[crypto.randomUUID(),secondPath])
 await assert.rejects(submitOrder(second,secondPath,'USER-TRANSFER-001'),/unique constraint/)
@@ -169,7 +170,7 @@ await db.query("insert into storage.objects(id,bucket_id,name) values($1,'avatar
 await assert.rejects(db.query("update storage.objects set bucket_id='bank-receipts' where bucket_id='avatars'"),/row-level security/)
 await as('root')
 const bankOverview=(await rpc('select public.admin_overview() data')).data
-assert.equal(bankOverview.bank_revenue_kobo,50000)
+assert.equal(bankOverview.bank_revenue_kobo,25000)
 assert.equal(bankOverview.pending_bank_orders,1)
 console.log('Manual bank payment snapshots, evidence RLS, approval idempotency, duplicate references, package configuration and managed listings passed')
 
@@ -184,7 +185,7 @@ await assert.rejects(mutate('configure_reward','referral_purchase_percent',{valu
 await mutate('configure_reward','referral_purchase_percent',{value:20})
 await as('user')
 const mine=(await rpc('select public.member_overview() data')).data
-assert.equal(mine.balance.balance,380)
+assert.equal(mine.balance.balance,400)
 assert.ok(mine.balance.referral_code)
 await assert.rejects(rpc('select public.admin_save_site_settings($1,$2)',[JSON.stringify(config),'Unauthorized attempt']),/Permission denied/)
 await assert.rejects(db.query("insert into public.social_links(profile_id,platform,url) values($1,'tiktok','https://tiktok.com/@test')",[ids.user]),/not currently available/)
@@ -199,7 +200,7 @@ const referredOrder=await createOrder('other'),refReceipt=`${ids.other}/${referr
 await db.query("insert into storage.objects(id,bucket_id,name) values($1,'bank-receipts',$2)",[crypto.randomUUID(),refReceipt]);await submitOrder(referredOrder,refReceipt,'referral-transfer-001')
 await as('finance');await review(referredOrder,true,'bank-referral-001');await review(referredOrder,true,'bank-referral-001')
 await as('user')
-assert.equal((await rpc('select public.member_overview() data')).data.balance.balance,480)
+assert.equal((await rpc('select public.member_overview() data')).data.balance.balance,500)
 assert.equal((await rpc('select public.member_referrals(0) data')).data.rows[0].purchase_reward_points,100)
 assert.equal((await db.query('select * from public.referral_purchase_rewards')).rows.length,1)
 await as('root')

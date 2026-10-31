@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import {ExperienceBanner} from '../components/Experience'
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   ArrowUpRight,
@@ -11,7 +12,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
-import { publicError, withTimeout } from "../lib/errors";
+import { withTimeout } from "../lib/errors";
 const money = (value) =>
   new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN" }).format(
     value / 100,
@@ -26,22 +27,17 @@ export default function Commerce() {
         : pathname === "/subscriptions"
           ? "subscriptions"
           : "payments",
-    [source, setSource] = useState("payment_transactions"),
+    [source, setSource] = useState("bank_point_orders"),
     [page, setPage] = useState(0),
     [rows, setRows] = useState([]),
     [total, setTotal] = useState(0),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
-    [version, setVersion] = useState(0),
-    [selected, setSelected] = useState(null),
-    [busy, setBusy] = useState(false),
-    [notice, setNotice] = useState(""),
-    dialog = useRef(null);
+    [version, setVersion] = useState(0);
   useEffect(() => {
     setPage(0);
     setRows([]);
     setError("");
-    setNotice("");
   }, [kind, source]);
   useEffect(() => {
     let active = true;
@@ -86,41 +82,6 @@ export default function Commerce() {
       active = false;
     };
   }, [kind, source, page, user.id, version]);
-  useEffect(() => {
-    if (selected) dialog.current?.showModal();
-  }, [selected]);
-  async function verify(e) {
-    e.preventDefault();
-    setBusy(true);
-    setError("");
-    try {
-      const { data, error } = await withTimeout(
-        supabase.functions.invoke("verify-payment", {
-          body: {
-            reference: selected.reference,
-            reason:
-              "Account owner requested a provider status check from payment history.",
-          },
-        }),
-        20000,
-      );
-      if (error || !data?.verified) throw error || new Error();
-      setSelected(null);
-      setNotice(
-        "The provider confirmed this payment. Your transaction status has been refreshed.",
-      );
-      setVersion((v) => v + 1);
-    } catch (e) {
-      setError(
-        publicError(
-          e,
-          "We could not confirm this payment. It has not been manually approved. Please try again or contact support.",
-        ),
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
   const labels = {
       promotions: [
         "PROMOTE WITH INTENTION",
@@ -137,7 +98,7 @@ export default function Commerce() {
       payments: [
         "EVERY TRANSACTION, ACCOUNTED FOR",
         "Your payment history.",
-        "Track provider payments and manual point-purchase transfers.",
+        "Manual bank transfers only. Credits require independent confirmation of received funds.",
         CreditCard,
       ],
     },
@@ -154,12 +115,13 @@ export default function Commerce() {
           <Icon size={25} />
         </span>
       </div>
+      <ExperienceBanner icon={Icon} title={kind==="payments"?"Clarity at every step.":kind==="promotions"?"Give your story a bigger stage.":"More room for your next chapter."} description="Your platform, your pace. Clear terms and real records, always."/>
       <nav className="commerce-tabs" aria-label="Commerce navigation">
         {[
           ["/promotions", "Promotions"],
           ["/subscriptions", "Subscriptions"],
           ["/payments", "Payments"],
-          ["/boosts", "Point boosters"],
+          ["/boosts", "Boost Center"],
         ].map(([to, label]) => (
           <Link key={to} className={pathname === to ? "active" : ""} to={to}>
             {label}
@@ -173,13 +135,13 @@ export default function Commerce() {
               aria-pressed={source === "payment_transactions"}
               onClick={() => setSource("payment_transactions")}
             >
-              Provider payments
+              Historical online payments (read-only)
             </button>
             <button
               aria-pressed={source === "bank_point_orders"}
               onClick={() => setSource("bank_point_orders")}
             >
-              Bank point purchases
+              Manual bank deposits
             </button>
           </div>
           <button
@@ -192,12 +154,7 @@ export default function Commerce() {
           </button>
         </div>
       )}
-      {notice && (
-        <p className="design-alert success" role="status">
-          {notice}
-        </p>
-      )}
-      {error && !selected && (
+      {error && (
         <p className="design-alert danger" role="alert">
           {error}
           <button onClick={() => setVersion((v) => v + 1)}>Retry</button>
@@ -260,8 +217,8 @@ export default function Commerce() {
                 {kind === "subscriptions"
                   ? "Your subscriptions"
                   : source === "bank_point_orders"
-                    ? "Bank-transfer point purchases"
-                    : "Provider transactions"}
+                    ? "Manual bank deposits"
+                    : "Historical online transactions"}
               </h2>
               <p>{total} matching records · private to your account</p>
             </div>
@@ -315,21 +272,9 @@ export default function Commerce() {
                       </td>
                       <td>{date(r.created_at)}</td>
                       <td>
-                        {source === "payment_transactions" &&
-                        r.status === "pending" &&
-                        r.provider === "paystack" ? (
-                          <button
-                            className="commerce-verify"
-                            onClick={() => {
-                              setError("");
-                              setSelected(r);
-                            }}
-                          >
-                            Check with provider
-                          </button>
-                        ) : source === "bank_point_orders" &&
+                        {source === "bank_point_orders" &&
                           r.status === "awaiting_transfer" ? (
-                          <Link to="/rewards">View instructions →</Link>
+                          <Link to="/credits">View bank instructions →</Link>
                         ) : (
                           <span>—</span>
                         )}
@@ -377,45 +322,6 @@ export default function Commerce() {
           </button>
         </div>
       </div>
-      {selected && (
-        <dialog
-          className="member-dialog"
-          ref={dialog}
-          aria-labelledby="verify-payment-title"
-          onCancel={(e) => {
-            if (busy) e.preventDefault();
-            else setSelected(null);
-          }}
-        >
-          <form onSubmit={verify}>
-            <ShieldCheck size={28} />
-            <h2 id="verify-payment-title">Check this payment?</h2>
-            <p>
-              We’ll ask the provider to verify reference{" "}
-              <strong>{selected.reference}</strong> for{" "}
-              {money(selected.amount_kobo)}. This will not manually approve a
-              transfer or charge you again.
-            </p>
-            {error && (
-              <p className="design-alert danger" role="alert">
-                {error}
-              </p>
-            )}
-            <div className="member-dialog-actions">
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => setSelected(null)}
-              >
-                Cancel
-              </button>
-              <button className="design-button primary" disabled={busy}>
-                {busy ? "Checking…" : "Check with provider"}
-              </button>
-            </div>
-          </form>
-        </dialog>
-      )}
     </main>
   );
 }

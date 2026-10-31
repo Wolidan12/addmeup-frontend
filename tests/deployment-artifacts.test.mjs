@@ -17,3 +17,18 @@ assert.ok(worker.includes('danqel-navigation-v2'))
 assert.ok(worker.includes('/offline.html'))
 assert.ok(!worker.includes('registerNavigationRoute'))
 console.log('Release marker, removed banners, update prompt and network-first navigation present in production artifacts')
+const manifest=JSON.parse(await readFile('dist/manifest.webmanifest','utf8'))
+for(const [url,size,purpose] of [['/icons/icon-192.png','192x192',undefined],['/icons/icon-512.png','512x512','any'],['/icons/icon-maskable-512.png','512x512','maskable']]){
+ assert.ok(manifest.icons.some(i=>i.src===url&&i.sizes===size&&i.type==='image/png'&&(!purpose||i.purpose===purpose)))
+ assert.ok(worker.includes(url.slice(1)))
+}
+for(const name of ['danqel-logo','danqel-mark','danqel-wordmark'])assert.ok(worker.includes('brand/'+name+'.webp'))
+assert.ok(!worker.includes('icon-192.svg'))
+console.log('Production manifest and offline precache include approved brand artwork and real PNG install icons')
+
+assert.ok(worker.includes('importScripts("/push-handler.js")'))
+const pushHandler=await readFile('dist/push-handler.js','utf8')
+assert.ok(pushHandler.includes("addEventListener('push'"));assert.ok(pushHandler.includes("addEventListener('notificationclick'"))
+assert.ok(html.includes('name="danqel-build" content="'+release.commit+'"'))
+assert.equal(typeof release.version,'string')
+console.log('Generated service worker imports push handlers; matching build meta, package version and release marker present')

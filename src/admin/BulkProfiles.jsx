@@ -5,7 +5,7 @@ import {supabase} from '../lib/supabase'
 import {withTimeout,publicError} from '../lib/errors'
 import {uploadImage} from '../lib/uploads'
 import {newManagedDraft,prepareManagedBatch} from '../lib/managedProfiles'
-import {PLATFORMS} from '../lib/validation'
+import {MANAGED_PLATFORMS as PLATFORMS} from '../lib/validation'
 export default function BulkProfiles({onClose,onSaved}){
  const {user}=useAuth(),dialog=useRef(null),request=useRef(null)
  const [rows,setRows]=useState([newManagedDraft()]),[reason,setReason]=useState(''),[consent,setConsent]=useState(false),[review,setReview]=useState(null),[busy,setBusy]=useState(false),[uploading,setUploading]=useState(''),[error,setError]=useState(''),[attempted,setAttempted]=useState(false)

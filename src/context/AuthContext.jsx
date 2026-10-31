@@ -1,3 +1,4 @@
+import {disableDevicePush} from '../lib/push'
 import {
   createContext,
   useCallback,
@@ -75,14 +76,18 @@ export function AuthProvider({ children }) {
       data.subscription.unsubscribe();
     };
   }, [retrySession]);
-  const signUp = async (email, password) => {
+  const signUp = async (email, password, metadata) => {
     if (!isSupabaseConfigured) return unavailable();
+    const available=await withTimeout(supabase.rpc("is_username_available",{p_username:metadata?.username}));
+    if(available.error)return {error:{code:"service_unavailable"}};
+    if(!available.data)return {error:{code:"username_unavailable"}};
     const ref = storageGet("danqel_pending_referral");
-    return withTimeout(
+    const result=await withTimeout(
       supabase.auth.signUp({
         email,
         password,
         options: {
+          data: metadata,
           emailRedirectTo:
             window.location.origin +
             "/verify" +
@@ -90,12 +95,18 @@ export function AuthProvider({ children }) {
         },
       }),
     );
+    if(result.error?.code==='unexpected_failure'){
+      const check=await withTimeout(supabase.rpc('is_username_available',{p_username:metadata.username}));
+      if(!check.error&&check.data===false)return {error:{code:'username_unavailable'}};
+    }
+    return result;
   };
   const signIn = async (email, password) =>
     isSupabaseConfigured
-      ? withTimeout(supabase.auth.signInWithPassword({ email, password }))
+      ? withTimeout(supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password }))
       : unavailable();
   const signOut = async () => {
+    if(user)try{await withTimeout(disableDevicePush(user.id),5000)}catch{/* Native unsubscribe attempted; stale endpoint expires/revokes on delivery. */}
     if (isSupabaseConfigured) {
       const { error } = await withTimeout(supabase.auth.signOut());
       if (error) throw error;
@@ -106,7 +117,7 @@ export function AuthProvider({ children }) {
   const reset = async (email) =>
     isSupabaseConfigured
       ? withTimeout(
-          supabase.auth.resetPasswordForEmail(email, {
+          supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
             redirectTo: window.location.origin + "/reset-password",
           }),
         )

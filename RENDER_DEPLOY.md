@@ -1,26 +1,26 @@
-> **Current deployment troubleshooting:** If you still see the green Supabase/demo banner or old Discover page, follow **[DEPLOYMENT_RECOVERY.md](DEPLOYMENT_RECOVERY.md)** first. The merged dashboard release requires schema/migration review through **010**, not only 004–005. The historical checklist below predates that release; do not treat its migration list as complete or rerun bootstrap SQL on existing tables.
+# Render + existing Supabase — current rollout gate
 
-# Danqel — Render + Supabase (exact settings)
-## Render Static Site (frontend ONLY — no Node/Express backend)
-Render Dashboard -> New -> Static Site -> connect GitHub repo Wolidan12/addmeup-frontend (branch with latest code / merged PR)
-- Name: danqel-social-boost
-- Build Command: npm ci && npm run build
-- Publish Directory: dist
-- Environment variables (public, frontend-safe):
-  VITE_SUPABASE_URL=https://lohlvenibvohoxtfucfa.supabase.co
-  VITE_SUPABASE_ANON_KEY=sb_publishable_lHs-TyUoDiSN-mV3wECoHw_3VgnFYU-   (publishable key - safe in browser; protected by RLS)
-  NODE_VERSION=20
-- SPA fallback: render.yaml in repo already sets rewrite /* -> /index.html (or Dashboard -> Redirects/Rewrites: Source /* Action Rewrite Destination /index.html)
-These values are also committed in render.yaml so Render Blueprint import works. NEVER add service_role/Paystack secret to Render.
-## Supabase (existing project lohlvenibvohoxtfucfa — DO NOT create a new one)
-1. Already applied by owner: migrations 001-003 (APPLY_ALL). Now run ONLY supabase/migrations/004_admin_payments_storage.sql, then 005_rls_hardening.sql, in SQL Editor (both additive, preserve data/accounts).
-2. Make yourself admin: edit last lines of 004: insert into public.user_roles(user_id,role) select id,'admin' from auth.users where email='YOUR_EMAIL'; (run after registering)
-3. Auth -> URL Configuration: Site URL=https://YOUR-RENDER-URL.onrender.com ; Redirects: https://YOUR-RENDER-URL.onrender.com/** (+ localhost for dev).
-4. Edge Functions (only for payments/admin secrets): supabase secrets set PAYSTACK_SECRET_KEY=... ; supabase functions deploy verify-payment payment-webhook admin-action ; set Paystack webhook URL to https://lohlvenibvohoxtfucfa.supabase.co/functions/v1/payment-webhook
-5. Storage bucket avatars is created by 004.
+**31 October 2026: NO new Render deployment performed.** See `PRODUCTION_BLOCKERS_REPORT.md` for current evidence and `MIGRATION_RECONCILIATION.md` for the 024-before-016–023 correction. Historical bootstrap/admin self-grant instructions are superseded; do not replay them.
 
-## Production verification status (honest)
-- Local: production build + tests pass (see README). SPA fallback verified locally via vite preview (deep links return index.html).
-- NOT verified from the build sandbox (outbound to supabase.co is blocked there): live registration/login, RLS attack tests, Edge Function deploys, Render deploy. Owner runs the checklist in DEPLOYMENT_CHECKLIST.md after deploying.
-- Reward claims use Supabase Postgres security-definer RPCs (trusted server-side inside Supabase) - no separate server and no client-side point awards. Edge Functions are used where external secrets are required (payments/admin).
-- Unimplemented (do not claim live): actual Paystack checkout UI + taking live payments (Edge Functions are ready to deploy; provider account/secrets + webhook setup are owner steps), push notifications, AI features (no AI keys anywhere).
+## Static frontend configuration
+
+Use the existing Render Static Site, repository `Wolidan12/addmeup-frontend`, published domain `https://danqel-social-boost.onrender.com`. `render.yaml` specifies:
+
+- Branch `main` (production configuration, not the Arena working branch).
+- `npm ci && npm run build`; publish directory `dist`; Node `22.22.3`.
+- SPA rewrite `/*` → `/index.html`.
+- Revalidate HTML; no-store version marker/service worker/manifest; immutable hashed assets; nosniff/frame/referrer headers.
+- Only public `VITE_SUPABASE_URL` and anon/publishable key. No service-role, SMTP, Paystack, VAPID-private or scheduler secrets in Render/browser variables.
+
+The dashboard's actual branch/env/headers/domain and successful release deployment remain unverified. Repository configuration is not proof of live settings. This session must remain on `arena/24d9981d-addmeup-frontend`; no push, PR merge or automatic production deployment was performed. Production release requires reviewed integration through the owner's normal workflow after backend gates clear.
+
+## Ordered release
+
+1. Verify recovery and execute only the reviewed new forward reconciliation, with recorded postchecks. Never run the numbered migration directory blindly against this production project.
+2. Configure/test SMTP, real staff sessions/ordinary denial, secure notification providers and statement-verified Moniepoint manual deposits. Production online funding remains disabled.
+3. Produce a reviewed clean source release. Local `dist/version.json` currently truthfully says `sourceDirty: true`; do not announce it as a clean published release. Never edit the marker to hide dirty source.
+4. Build/test, deploy the actual approved commit through Render, then inspect `/version.json` and real hashed asset responses. A generic 200 HTML SPA fallback is NOT proof a manifest/icon/asset exists. Run `EXPECTED_COMMIT=<approved-40-character-commit> node scripts/verify-production.mjs https://danqel-social-boost.onrender.com` from an environment with domain access.
+5. Verify direct deep links/refresh, real login/token refresh, ordinary/admin authorization, manifest PNG/maskable icons, SW update lifecycle/cache headers, old-tab update banner/save-work flow, offline fallback and recovery. Keep Supabase Auth/financial/API data out of runtime caches.
+6. Only announce a release after the exact clean commit is live and accepted; never publish notifications for failed/unpublished builds.
+
+The last previously observed live marker was commit `d7bdd4607c9a3771dfba4e4210bc2c820304bce2`, built `2026-10-28T12:12:29.375Z`. It was not re-fetched in this continuation; no claim is made that current production has changed.
