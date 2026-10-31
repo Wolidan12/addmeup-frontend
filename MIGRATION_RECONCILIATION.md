@@ -1,3 +1,5 @@
+> **Recovery update:** The owner confirmed the Free plan has no scheduled backup and no isolated restore test has been performed. `MANUAL_BACKUP_AND_RESTORE.md` now provides a secure free manual-backup/local-restore workflow. Tooling tests are not an actual production backup or restore; rollout remains blocked pending the real run and recovery review.
+
 # Migration reconciliation — 31 October 2026
 
 **Production execution BLOCKED.** This runbook and generated SQL have not been executed against production. Backup reference/timestamp, restore owner and recovery evidence remain pending. Isolated rollback tests do not verify production backup restoration.

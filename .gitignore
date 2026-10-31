@@ -7,3 +7,13 @@ dist
 *.log
 playwright-report
 test-results
+
+# Recovery artifacts contain Auth data: keep outside Git even if misplaced.
+*.dump
+.pgpass
+.pg_service.conf
+backups/
+recovery-backups/
+
+__pycache__/
+*.py[cod]
