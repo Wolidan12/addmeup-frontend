@@ -1,3 +1,5 @@
+> **Current payment policy (2026-10-31): MANUAL BANK TRANSFER ONLY.** Online Paystack processing/actions have been retired. Provider setup, secret and webhook instructions below are historical and must not be followed. Use `MANUAL_DEPOSITS_ONLY.md` and migration 021 for the current implementation and rollout. Historical payment records are preserved.
+
 # Admin-access audit, security repairs and UI redesign
 
 > **Current status:** See [RELEASE_011.md](RELEASE_011.md) for stage 007–011 recovery, the latest owner evidence, tests and live-verification limitations. The earlier procedure below is historical: **do not replay completed 005/006 or the role grant.**

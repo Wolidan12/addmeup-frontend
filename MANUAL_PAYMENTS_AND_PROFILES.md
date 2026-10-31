@@ -1,3 +1,5 @@
+> **Current payment policy (2026-10-31): MANUAL BANK TRANSFER ONLY.** Online Paystack processing/actions have been retired. Provider setup, secret and webhook instructions below are historical and must not be followed. Use `MANUAL_DEPOSITS_ONLY.md` and migration 021 for the current implementation and rollout. Historical payment records are preserved.
+
 # Profile pictures, Moniepoint point purchases and managed listings
 
 ## Confirmed configuration

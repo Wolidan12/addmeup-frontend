@@ -1,3 +1,7 @@
+import LaunchPromotion from '../components/LaunchPromotion'
+import {registrationDetails} from '../lib/accountValidation'
+import {BrandScene,TrustStrip} from '../components/Experience'
+import BrandLogo from '../components/BrandLogo';
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation, Navigate, Link } from "react-router-dom";
 import {
@@ -25,7 +29,7 @@ function Shell({
   staff = false,
 }) {
   const site = useSite();
-  return <main className={'auth-atelier '+(staff?'auth-staff-edition':'')}><header className="auth-masthead"><Link className="design-brand" to="/"><span className="design-brand-mark">d.</span>{site.brand_name}</Link><Link to="/support">Need a hand? <ArrowUpRight size={14}/></Link></header><section className="auth-paper"><div className="auth-paper-symbol"><span>{staff?<LockKeyhole size={25}/>:<Users size={25}/>}</span><i/><i/></div><div className="auth-eyebrow">{eyebrow}</div><h1>{title}</h1><p className="auth-subtitle">{subtitle}</p>{children}</section><footer className="auth-paper-footer"><span><ShieldCheck size={14}/>Your social passwords stay yours.</span><nav><Link to="/">Home</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></nav></footer></main>;
+  return <main className={'auth-atelier '+(staff?'auth-staff-edition':'')}><header className="auth-masthead"><Link className="design-brand" to="/"><BrandLogo name={site.brand_name}/></Link><Link to="/support">Need a hand? <ArrowUpRight size={14}/></Link></header><div className="auth-experience"><aside className="auth-story"><span className="signal-eyebrow"><i/> THE HUMAN SIDE OF SOCIAL TECHNOLOGY</span><h2>More than a link.<br/><em>A world of possibility.</em></h2><BrandScene compact/><p className="auth-story-tagline">CONNECT. ENGAGE. GROW.</p><TrustStrip/></aside><section className="auth-paper"><div className="auth-paper-symbol"><span>{staff?<LockKeyhole size={25}/>:<Users size={25}/>}</span><i/><i/></div><div className="auth-eyebrow">{eyebrow}</div><h1>{title}</h1><p className="auth-subtitle">{subtitle}</p>{children}</section></div><footer className="auth-paper-footer"><span><ShieldCheck size={14}/>Your social passwords stay yours.</span><nav><Link to="/">Home</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></nav></footer></main>;
 }
 
 const Notice = ({ error, message }) =>
@@ -52,6 +56,7 @@ function Password({
           name={name}
           type={show ? "text" : "password"}
           minLength={newPassword ? 8 : undefined}
+          maxLength={128}
           required
           autoComplete={newPassword ? "new-password" : "current-password"}
         />
@@ -157,6 +162,7 @@ export function Login({ staff = false }) {
             />
           </label>
           <Password />
+          {error==='Please verify your email before signing in.'&&<Link to="/verify" className="auth-switch">Resend your verification email</Link>}
           <Link className="auth-forgot" to="/forgot-password">
             Forgot password?
           </Link>
@@ -198,7 +204,8 @@ export function Register() {
       title="Make room for more."
       subtitle="One account. Your social world, connected."
     >
-      <Notice error={error} message={message} />
+      <LaunchPromotion compact/>
+      <Notice error={error} message={message} />{message&&<Link className="auth-switch" to="/verify">Need another verification email?</Link>}
       <form
         className="auth-form"
         onSubmit={async (e) => {
@@ -207,7 +214,8 @@ export function Register() {
           setError("");
           const f = new FormData(e.currentTarget);
           try {
-            const { error } = await signUp(f.get("email"), f.get("password"));
+            const details=registrationDetails({...Object.fromEntries(f),terms_accepted:f.get("terms_accepted")==="on"});
+            const { error } = await signUp(details.email,details.password,details.metadata);
             if (error) throw error;
             setMessage(
               "Check your email for a verification link. If an account already exists, you can sign in or reset your password.",
@@ -224,6 +232,8 @@ export function Register() {
           }
         }}
       >
+        <label className="auth-field">Full name<input required name="full_name" autoComplete="name" minLength={1} maxLength={60} placeholder="Your full name"/></label>
+        <label className="auth-field">Username<input required name="username" aria-label="Username" autoComplete="username" pattern="[a-zA-Z0-9_]{3,24}" minLength={3} maxLength={24} placeholder="your_unique_name"/><small>3–24 letters, numbers or underscores. Saved in lowercase.</small></label>
         <label className="auth-field">
           Email address
           <input
@@ -234,12 +244,12 @@ export function Register() {
             required
           />
         </label>
-        <Password label="Create a password" newPassword />
+        <Password label="Create a password" newPassword /><Password label="Confirm password" name="confirm" newPassword />
         <p className="auth-password-hint">
           At least 8 characters. Use a password you don’t use elsewhere.
         </p>
         <label className="auth-consent">
-          <input type="checkbox" required />{" "}
+          <input type="checkbox" name="terms_accepted" required />{" "}
           <span>
             I agree to the <Link to="/terms">Terms</Link> and{" "}
             <Link to="/privacy">Privacy Policy</Link>.

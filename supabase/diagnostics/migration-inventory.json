@@ -1,0 +1,300 @@
+{
+  "generatedAt": "2026-10-31T13:48:33.714Z",
+  "source": "local-files-not-live-execution",
+  "migrations": [
+    {
+      "number": 16,
+      "file": "016_dc_economy.sql",
+      "sha256": "2996757d99646e24ad46926af760b5ec2fa71a8278e34a363ac5c1c1479cb98a",
+      "dependencies": [
+        "existing 001–015 catalog",
+        "existing 024 privileges"
+      ],
+      "newTables": [
+        "dc_settings",
+        "dc_transactions"
+      ],
+      "newIndexes": [
+        "dc_transactions_owner",
+        "unique_dc_provider_transaction"
+      ],
+      "newTriggers": [
+        "dc_capture_balance",
+        "dc_link_ledger",
+        "dc_require_reconciled",
+        "dc_immutable_transaction",
+        "dc_immutable_transaction_truncate",
+        "dc_guard_wallet_delete"
+      ],
+      "renamedFunctions": [
+        {
+          "from": "create_bank_point_order(uuid,uuid)",
+          "to": "create_bank_point_order_before_dc"
+        },
+        {
+          "from": "admin_review_bank_order(uuid,boolean,text,text)",
+          "to": "admin_review_bank_order_before_dc"
+        }
+      ],
+      "notes": "Numeric widening; journal backfill; may deactivate incorrectly priced packages; temporarily enables provider settlement until 021."
+    },
+    {
+      "number": 17,
+      "file": "017_dc_wallet_and_spending.sql",
+      "sha256": "3af3379de133c6984fdbb01b6d5a81ab5079e31a2313bbfe5baa12b5f79d316f",
+      "dependencies": [
+        16
+      ],
+      "newTables": [
+        "dc_products",
+        "dc_orders"
+      ],
+      "newIndexes": [
+        "dc_orders_owner"
+      ],
+      "newTriggers": [
+        "dc_bank_request_snapshot",
+        "dc_provider_request_snapshot"
+      ],
+      "renamedFunctions": [
+        {
+          "from": "activate_point_boost(uuid,uuid)",
+          "to": "activate_point_boost_before_dc"
+        },
+        {
+          "from": "claim_daily_checkin()",
+          "to": "claim_daily_checkin_before_dc"
+        },
+        {
+          "from": "admin_list(text,text,text,int)",
+          "to": "admin_list_before_dc"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "number": 18,
+      "file": "018_launch_reward.sql",
+      "sha256": "d020d9b3d9867f9583d7a8a9220b313dd8851b758e88f868b9fedccb14fed570",
+      "dependencies": [
+        16,
+        17
+      ],
+      "newTables": [
+        "launch_campaign",
+        "launch_awards"
+      ],
+      "newIndexes": [],
+      "newTriggers": [
+        "launch_profile_eligibility",
+        "launch_verified_eligibility",
+        "launch_awards_immutable",
+        "launch_awards_no_truncate"
+      ],
+      "renamedFunctions": [],
+      "notes": "Automatically issues 5,000 DC to each existing eligible account. Requires explicit financial change approval."
+    },
+    {
+      "number": 19,
+      "file": "019_missions_progression.sql",
+      "sha256": "62bcc17a8772eea46d614ce13fcde135c3b95b0a37a7ff14859529d12b217bbb",
+      "dependencies": [
+        16,
+        17,
+        18
+      ],
+      "newTables": [
+        "mission_limits",
+        "creator_ranks",
+        "missions",
+        "mission_submissions",
+        "mission_awards",
+        "creator_xp_events"
+      ],
+      "newIndexes": [
+        "mission_awards_user_time",
+        "mission_submissions_user_time"
+      ],
+      "newTriggers": [
+        "immutable_history",
+        "immutable_history_truncate"
+      ],
+      "renamedFunctions": [
+        {
+          "from": "member_overview()",
+          "to": "member_overview_before_progression"
+        },
+        {
+          "from": "admin_list(text,text,text,int)",
+          "to": "admin_list_before_missions"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "number": 20,
+      "file": "020_discovery_promotions.sql",
+      "sha256": "1127b7045c7ce404a7f30c79647eb1529b7ceda8f79a2f906474e30694f77423",
+      "dependencies": [
+        16,
+        17,
+        18,
+        19
+      ],
+      "newTables": [
+        "member_connections",
+        "promotion_campaigns",
+        "promotion_events"
+      ],
+      "newIndexes": [
+        "promotion_window",
+        "one_unstarted_promotion"
+      ],
+      "newTriggers": [
+        "immutable_events",
+        "immutable_events_truncate"
+      ],
+      "renamedFunctions": [
+        {
+          "from": "dc_spend(uuid,uuid,text)",
+          "to": "dc_spend_before_promotions"
+        },
+        {
+          "from": "admin_dc_review_order(uuid,boolean,text)",
+          "to": "admin_dc_review_order_before_promotions"
+        },
+        {
+          "from": "admin_list(text,text,text,int)",
+          "to": "admin_list_before_promotions"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "number": 21,
+      "file": "021_manual_deposits_only.sql",
+      "sha256": "252c4459aa28c6bb6d33db9e2b3a506263252a80e4425e596f15ed27d26bf6a9",
+      "dependencies": [
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "newTables": [],
+      "newIndexes": [],
+      "newTriggers": [
+        "online_payments_disabled"
+      ],
+      "renamedFunctions": [],
+      "notes": ""
+    },
+    {
+      "number": 22,
+      "file": "022_web_push_notifications.sql",
+      "sha256": "95adeda5723cf2485951b92564b052872d7f692664e70558439e850de4f2dd5a",
+      "dependencies": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21
+      ],
+      "newTables": [
+        "push_config",
+        "notification_preferences",
+        "push_subscriptions",
+        "push_deliveries",
+        "push_attempts",
+        "notification_templates",
+        "app_releases",
+        "notification_announcements"
+      ],
+      "newIndexes": [
+        "notification_event_once",
+        "notification_inbox_filter",
+        "push_pending"
+      ],
+      "newTriggers": [
+        "immutable_push_attempts",
+        "immutable_push_attempts_truncate",
+        "notification_push_outbox",
+        "notification_classify",
+        "notify_free_connection",
+        "notify_promotion_update",
+        "notify_reward_boost",
+        "notify_account_restriction",
+        "notify_role_change",
+        "notify_auth_credentials"
+      ],
+      "renamedFunctions": [],
+      "notes": "Alters existing notification records and adds event triggers; no push deployment implied."
+    },
+    {
+      "number": 23,
+      "file": "023_complete_admin_workspace.sql",
+      "sha256": "33a5fc4faf6cd94f5b9f14613c974bf14351ff83a9d2b670b2aecd38fd014692",
+      "dependencies": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22
+      ],
+      "newTables": [
+        "support_tickets",
+        "support_replies",
+        "credit_coupons",
+        "coupon_redemptions"
+      ],
+      "newIndexes": [
+        "support_queue"
+      ],
+      "newTriggers": [
+        "immutable_support_replies",
+        "immutable_support_replies_truncate",
+        "immutable_coupon_redemptions",
+        "immutable_coupon_redemptions_truncate"
+      ],
+      "renamedFunctions": [
+        {
+          "from": "admin_can(text)",
+          "to": "admin_can_before_workspace"
+        },
+        {
+          "from": "admin_list(text,text,text,int)",
+          "to": "admin_list_before_workspace"
+        },
+        {
+          "from": "admin_overview()",
+          "to": "admin_overview_before_workspace"
+        },
+        {
+          "from": "admin_save_mission(uuid,jsonb,text)",
+          "to": "admin_save_mission_before_workspace"
+        },
+        {
+          "from": "admin_mutate(text,text,jsonb,text,uuid)",
+          "to": "admin_mutate_before_workspace"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "number": 24,
+      "file": "024_launch_least_privilege.sql",
+      "sha256": "c1222773e6ce19fd0bd6e6a6fcae2c9098120388569f32e9ae1d19674587aa8f",
+      "dependencies": [
+        "001–015; independent and already deployed"
+      ],
+      "newTables": [],
+      "newIndexes": [],
+      "newTriggers": [],
+      "renamedFunctions": [],
+      "notes": "Already applied; do not falsely register earlier versions as executed."
+    }
+  ]
+}

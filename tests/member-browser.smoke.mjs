@@ -12,7 +12,7 @@ const profile={id:userId,username:'test_member',display_name:'Test Member',bio:'
 const site={id:true,brand_name:'Danqel Social Boost',hero_title:'Good connections. Greater reach.',hero_description:'Meet your community.',enabled_platforms:['whatsapp','instagram','snapchat','tiktok','facebook','x'],maintenance_mode:false,support_email:null}
 const overview={profile,balance:{balance:180,current_streak:2,referral_code:'DQ-TESTMEMBER',last_checkin:null},social_count:1,profile_views:3,referral_count:0,referral_earnings:0,referral_percent:0,referred_by:null,active_boost:null,recent_activity:[],unread_notifications:0,pending_orders:0,restricted:false,role:'super_admin'}
 let roleMode='admin',signInRejected=false,managedRows=[],managedError=false
-const bulkRequests=[];let failBulkOnce=true
+const singleRequests=[];const bulkRequests=[];let failBulkOnce=true
 const testUser={id:userId,email:'member@example.org',aud:'authenticated',role:'authenticated',email_confirmed_at:new Date().toISOString(),app_metadata:{provider:'email'},user_metadata:{},created_at:new Date().toISOString()}
 const exp=Math.floor(Date.now()/1000)+3600,jwt=Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url')+'.'+Buffer.from(JSON.stringify({sub:userId,role:'authenticated',aud:'authenticated',exp})).toString('base64url')+'.testsignature'
 const testSession={access_token:jwt,refresh_token:'test-refresh',expires_at:exp,expires_in:3600,token_type:'bearer',user:testUser}
@@ -20,6 +20,7 @@ const exceptions=[]
 await context.route('https://test.supabase.co/**',async route=>{
  const url=new URL(route.request().url()),table=url.pathname.split('/').at(-1)
  let json=[]
+ if(table==='admin_save_managed_profile'){const body=route.request().postDataJSON();singleRequests.push(body);managedRows.push({...body.p_data,id:body.p_id});json=body.p_id}
  if(url.pathname.startsWith('/storage/v1/object/public/managed-avatars/')){await route.fulfill({status:200,contentType:'image/png',body:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a3l8AAAAASUVORK5CYII=','base64')});return}
  if(url.pathname.startsWith('/storage/v1/object/managed-avatars/'))json={Key:url.pathname}
  if(table==='admin_bulk_create_managed_profiles'){
@@ -52,11 +53,15 @@ await context.route('https://test.supabase.co/**',async route=>{
  if(table==='claim_daily_checkin')json='Check-in complete: +10 pts'
  await route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*','content-range':'*/0'},body:JSON.stringify(json)})
 })
-const page=await context.newPage();page.on('pageerror',error=>exceptions.push(error.message))
+async function assertBrand(){
+ await page.waitForFunction(()=>document.querySelectorAll('.danqel-brand img').length>=2&&[...document.querySelectorAll('.danqel-brand img')].every(i=>i.complete&&i.naturalWidth>0))
+ assert.equal(await page.evaluate(()=>[...document.querySelectorAll('.danqel-brand')].every(e=>e.getAttribute('aria-label')==='Danqel Social Boost')),true)
+}
+const page=await context.newPage();page.on('pageerror',error=>{exceptions.push(error.message);console.error('BROWSER ERROR',error.message)})
 await page.goto('http://localhost:5173/')
-await page.getByRole('heading',{name:/Good connections/}).waitFor()
-await page.screenshot({path:'/home/user/redesign-landing-desktop.png',fullPage:true})
-await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/home/user/redesign-landing-mobile.png',fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false);await page.setViewportSize({width:1440,height:1000})
+await page.getByRole('heading',{name:/Your world/}).waitFor();await page.locator('vite-error-overlay').waitFor({state:'detached'})
+await assertBrand();await page.screenshot({path:'/home/user/redesign-landing-desktop.png',fullPage:true})
+await page.setViewportSize({width:390,height:844});await assertBrand();await page.screenshot({path:'/home/user/redesign-landing-mobile.png',fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false);await page.setViewportSize({width:1440,height:1000})
 assert.equal(await page.getByText('Amara Okafor').count(),0)
 assert.equal(await page.getByText('Live — connected').count(),0)
 await page.evaluate(({userId})=>{
@@ -66,7 +71,7 @@ await page.evaluate(({userId})=>{
 },{userId})
 await page.goto('http://localhost:5173/dashboard')
 await page.getByRole('heading',{name:/Hey, Test Member/}).waitFor()
-await page.screenshot({path:'/home/user/member-desktop-test.png',fullPage:true})
+await assertBrand();await page.screenshot({path:'/home/user/member-desktop-test.png',fullPage:true})
 await page.goto('http://localhost:5173/referrals')
 await page.getByRole('heading',{name:'Grow together.'}).waitFor()
 await page.getByLabel('Your referral link').waitFor()
@@ -77,12 +82,21 @@ const modal=page.getByRole('dialog');await modal.waitFor();assert.equal(await mo
 await modal.getByRole('button',{name:'Cancel',exact:true}).click();await modal.waitFor({state:'detached'})
 await page.goto('http://localhost:5173/discover');await page.getByRole('heading',{name:'Explore the community.'}).waitFor();await page.getByRole('button',{name:'Instagram',exact:true}).click();assert.equal(await page.getByRole('button',{name:'Instagram',exact:true}).getAttribute('aria-pressed'),'true')
 await page.goto('http://localhost:5173/settings');await page.getByRole('heading',{name:'Make it yours.'}).waitFor();await page.getByLabel('Display name',{exact:true}).waitFor();await page.waitForFunction(()=>document.querySelector('input[pattern="[a-z0-9_]{3,24}"]')?.value==='test_member');assert.equal(await page.getByLabel('Display name',{exact:true}).inputValue(),'Test Member')
-await page.goto('http://localhost:5173/rewards');await page.getByRole('heading',{name:'Points & wallet.'}).waitFor();await page.getByRole('heading',{name:'Buy points by bank transfer'}).waitFor()
+await page.goto('http://localhost:5173/rewards');await page.getByRole('heading',{name:'Missions & challenges.'}).waitFor();await page.goto('http://localhost:5173/credits');await page.getByRole('heading',{name:'Buy Credits by bank transfer'}).waitFor()
 await page.goto('http://localhost:5173/admin?view=boost_plans');await page.getByRole('button',{name:'+ Create booster'}).click();await page.getByRole('dialog').getByRole('heading',{name:'Create booster plan'}).waitFor();await page.getByRole('dialog').getByRole('button',{name:'Cancel',exact:true}).click()
 await page.goto('http://localhost:5173/admin?view=site_settings');await page.getByRole('button',{name:'Inspect →'}).click();await page.getByRole('button',{name:'Edit site settings',exact:true}).click();await page.getByRole('dialog').getByRole('heading',{name:'Edit site settings'}).waitFor();await page.getByRole('dialog').getByRole('button',{name:'Cancel',exact:true}).click()
 await page.setViewportSize({width:390,height:844});await page.goto('http://localhost:5173/dashboard');await page.getByRole('heading',{name:/Hey, Test Member/}).waitFor();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false)
 await page.getByRole('button',{name:'Open navigation',exact:true}).click();await page.getByRole('navigation',{name:'Member workspace'}).getByRole('link',{name:'Referrals',exact:true}).click();await page.getByRole('heading',{name:'Grow together.'}).waitFor()
-await page.goto('http://localhost:5173/dashboard');await page.getByRole('heading',{name:/Hey, Test Member/}).waitFor();await page.screenshot({path:'/home/user/member-mobile-test.png',fullPage:true})
+await page.goto('http://localhost:5173/dashboard');await page.getByRole('heading',{name:/Hey, Test Member/}).waitFor();await assertBrand();await page.screenshot({path:'/home/user/member-mobile-test.png',fullPage:true})
+// Single-create validation/normalization is fixture-only and defaults to a private listing.
+await page.setViewportSize({width:1440,height:1000});await page.goto('http://localhost:5173/admin?view=managed_profiles')
+await page.getByRole('button',{name:'+ Create profile',exact:true}).click()
+const single=page.getByRole('dialog');assert.equal(await single.getByLabel('Publish in Discover').isChecked(),false)
+await single.getByLabel('Display name',{exact:true}).fill('Fixture Single Creator');await single.getByLabel('Listing username').fill('fixture_single')
+await single.getByLabel('facebook public URL').fill('https://evil.example/creator');await single.getByLabel('Reason / internal note').fill('Permission-approved fixture-only listing')
+await single.getByRole('button',{name:'Confirm and save',exact:true}).click();await single.getByText(/official facebook/).waitFor();assert.equal(singleRequests.length,0)
+await single.getByLabel('facebook public URL').fill('https://fb.com/creator');await single.getByRole('button',{name:'Confirm and save',exact:true}).click();await single.waitFor({state:'detached'})
+assert.equal(singleRequests.length,1);assert.equal(singleRequests[0].p_data.is_public,false);assert.equal(singleRequests[0].p_data.social_links[0].url,'https://www.facebook.com/creator')
 // New managed-profile studio: fixture-only create, photo upload, consent and error recovery.
 await page.setViewportSize({width:1440,height:1000});await page.goto('http://localhost:5173/admin?view=managed_profiles')
 await page.getByRole('button',{name:'Create multiple profiles',exact:true}).click()
@@ -94,14 +108,14 @@ await bulk.getByLabel('Batch creation reason').fill('Owner permission for fixtur
 await bulk.getByRole('button',{name:'Review 2 profiles',exact:true}).click();await bulk.getByRole('heading',{name:'Review your collection.'}).waitFor()
 assert.equal(await bulk.getByRole('button',{name:'Create 2 profiles',exact:true}).isDisabled(),true)
 await bulk.getByLabel('Confirm permission to publish').check()
-await page.screenshot({path:'/home/user/bulk-profiles-desktop.png',fullPage:true})
-await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:'/home/user/bulk-profiles-mobile.png',fullPage:true})
+await assertBrand();await page.screenshot({path:'/home/user/bulk-profiles-desktop.png',fullPage:true})
+await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await assertBrand();await page.screenshot({path:'/home/user/bulk-profiles-mobile.png',fullPage:true})
 await bulk.getByRole('button',{name:'Create 2 profiles',exact:true}).click();await bulk.getByRole('button',{name:'Retry same batch',exact:true}).click();await bulk.waitFor({state:'detached'});await page.getByRole('heading',{name:'Fixture Creator One',exact:true}).waitFor()
 assert.equal(bulkRequests.length,2);assert.deepEqual(bulkRequests[0],bulkRequests[1]);assert.equal(bulkRequests[0].p_rows.length,2);assert.equal(bulkRequests[0].p_confirm,true);assert.equal(bulkRequests[0].p_rows[0].is_public,false)
 assert.ok(bulkRequests[0].p_rows[0].avatar_url.includes('/managed-avatars/'))
 managedError=true;await page.getByRole('button',{name:/Refresh/,exact:false}).click();await page.getByText('Records unavailable',{exact:true}).waitFor();assert.equal(await page.getByRole('heading',{name:'Fixture Creator One',exact:true}).count(),0);assert.equal(await page.getByText('PRIVATE_INTERNAL_SENTINEL').count(),0)
 managedError=false;await page.getByRole('button',{name:'Retry',exact:true}).click();await page.getByRole('heading',{name:'Fixture Creator One',exact:true}).waitFor()
-await page.screenshot({path:'/home/user/managed-profiles-mobile.png',fullPage:true})
+await assertBrand();await page.screenshot({path:'/home/user/managed-profiles-mobile.png',fullPage:true})
 
 // New commerce views read the signed-in account's records and render honest empty states.
 for(const [path,title]of [['promotions','A little more visibility.'],['subscriptions','Your plans, in one place.'],['payments','Your payment history.']]){
@@ -111,14 +125,14 @@ for(const [path,title]of [['promotions','A little more visibility.'],['subscript
 roleMode='ordinary';await page.goto('http://localhost:5173/admin');await page.getByRole('heading',{name:'This workspace is for authorized staff'}).waitFor();assert.equal(await page.getByRole('navigation',{name:'Administration'}).count(),0)
 roleMode='error';await page.reload();await page.getByRole('heading',{name:'We could not verify access'}).waitFor();assert.equal(await page.getByText('PRIVATE_INTERNAL_SENTINEL').count(),0)
 roleMode='admin';await page.getByRole('button',{name:'Try again',exact:true}).click();await page.getByRole('navigation',{name:'Administration'}).waitFor();await page.reload();await page.getByRole('navigation',{name:'Administration'}).waitFor()
-await page.screenshot({path:'/home/user/redesign-admin-mobile.png',fullPage:true})
+await assertBrand();await page.screenshot({path:'/home/user/redesign-admin-mobile.png',fullPage:true})
 roleMode='timeout';await page.reload();await page.getByRole('heading',{name:'We could not verify access'}).waitFor({timeout:18000});roleMode='admin'
 await page.evaluate(()=>localStorage.removeItem('sb-test-auth-token'));await page.goto('http://localhost:5173/admin');await page.waitForURL('**/admin/login');await page.getByRole('heading',{name:'Staff sign in.'}).waitFor()
-await page.setViewportSize({width:1440,height:1000});await page.screenshot({path:'/home/user/redesign-staff-login.png',fullPage:true})
+await page.setViewportSize({width:1440,height:1000});await assertBrand();await page.screenshot({path:'/home/user/redesign-staff-login.png',fullPage:true})
 signInRejected=true;await page.getByLabel('Email address',{exact:true}).fill('member@example.org');await page.getByLabel('Password',{exact:true}).fill('test-password-only');await page.getByRole('button',{name:'Continue to staff workspace'}).click();await page.getByRole('alert').filter({hasText:'The email or password is incorrect.'}).waitFor();assert.equal(await page.getByText('PRIVATE_INTERNAL_SENTINEL').count(),0)
-signInRejected=false;await page.getByRole('button',{name:'Continue to staff workspace'}).click();await page.getByRole('navigation',{name:'Administration'}).waitFor();await page.reload();await page.getByRole('navigation',{name:'Administration'}).waitFor();await page.screenshot({path:'/home/user/redesign-admin-desktop.png',fullPage:true})
+signInRejected=false;await page.getByRole('button',{name:'Continue to staff workspace'}).click();await page.getByRole('navigation',{name:'Administration'}).waitFor();await page.reload();await page.getByRole('navigation',{name:'Administration'}).waitFor();await assertBrand();await page.screenshot({path:'/home/user/redesign-admin-desktop.png',fullPage:true})
 await page.goto('http://localhost:5173/verify?success=true');await page.getByRole('heading',{name:'You’re verified.'}).waitFor()
 await page.evaluate(()=>localStorage.removeItem('sb-test-auth-token'));await page.reload();await page.getByRole('heading',{name:'Check your inbox.'}).waitFor();assert.equal(await page.getByRole('heading',{name:'You’re verified.'}).count(),0)
 assert.deepEqual(exceptions,[])
 await browser.close()
-console.log('Browser smoke passed: bulk studio with photo, review/consent, stable ambiguous-result retry and managed-list failure recovery;  commerce, mocked staff sign-in/refresh/denial/error/retry/timeout, verification anti-spoofing, sanitized login errors;  public home, desktop/mobile workspace, referrals, boosters dialog, directory filters, photo/settings, wallet and admin configuration dialogs (mock network fixtures).')
+console.log('Browser smoke passed: supplied-logo loading/accessibility across shells, single-profile private defaults and official-link normalization;  bulk studio with photo, review/consent, stable ambiguous-result retry and managed-list failure recovery;  commerce, mocked staff sign-in/refresh/denial/error/retry/timeout, verification anti-spoofing, sanitized login errors;  public home, desktop/mobile workspace, referrals, boosters dialog, directory filters, photo/settings, wallet and admin configuration dialogs (mock network fixtures).')
