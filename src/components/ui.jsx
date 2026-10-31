@@ -1,3 +1,4 @@
+import ProfileCompletionBadge from './ProfileCompletionBadge'
 import {supabase} from '../lib/supabase'
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -83,7 +84,7 @@ export function ProfileCard({ p, onSave, saved }) {
           )}
         </Link>
         <Link to={path} className="creator-name">
-          {p.display_name}
+          {p.display_name} <ProfileCompletionBadge profile={p}/>
         </Link>
         {p.paid_premium_badge&&<span className="paid-cosmetic-badge">Paid Premium badge · cosmetic, not verification</span>}
         {p.promotion_copy&&<p className="promotion-copy">{p.promotion_copy}</p>}

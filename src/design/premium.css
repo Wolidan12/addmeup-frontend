@@ -4016,3 +4016,25 @@ dialog::backdrop {
 .manual-deposit-form{margin-top:24px;padding:24px;display:grid;gap:18px}.manual-deposit-form label{display:grid;gap:10px}.manual-deposit-form output{font-size:24px;font-weight:750;color:#ded0fd;overflow-wrap:anywhere}.manual-deposit-form p{color:#b5a9c9;font-size:12px;line-height:1.9}.manual-deposit-summary{display:flex;gap:20px;flex-wrap:wrap;margin:20px 0}.manual-deposit-summary label{display:grid;gap:8px;min-width:180px}.manual-deposit-summary p{flex:1;min-width:160px}.manual-deposit-summary strong{display:block;color:#dac5f8;margin-top:10px}
 .notification-preferences,.notification-console,.notification-inbox{margin-top:26px;padding:26px}.notification-preferences h2,.notification-console h2{font-size:24px;font-weight:750;margin:12px 0}.notification-preferences p,.notification-console p{font-size:12px;line-height:1.85;color:#bcaecf;margin:14px 0}.notification-preferences form,.notification-console>form{display:grid;gap:18px;margin:26px 0;padding-top:24px;border-top:1px solid #8571aa33}.notification-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:16px 0}.notification-form-grid label,.notification-console label{display:grid;gap:9px;font-size:12px}.notification-category-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.notification-preferences .dc-checkbox,.notification-console .dc-checkbox{display:flex;align-items:flex-start;gap:10px;font-size:12px}.notification-preferences h3,.notification-console h3{font-size:18px;font-weight:700;margin:22px 0 12px}.notification-device-actions,.notification-preferences li{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:18px 0}.notification-preferences li{padding:14px;border:1px solid #8c6db044;border-radius:12px;font-size:12px}.notification-preferences button,.notification-inbox button,.notification-console button{min-height:44px;padding:10px 14px;font-size:12px;border:1px solid #8767ae55;border-radius:9px}.notification-inbox li{padding:24px 0;border-top:1px solid #76608e44}.notification-inbox li>div{display:flex;gap:14px;justify-content:space-between;flex-wrap:wrap}.notification-inbox li h3{font-weight:700}.notification-inbox li p{white-space:pre-wrap;overflow-wrap:anywhere;margin:16px 0;font-size:13px;line-height:1.8}.notification-inbox time,.notification-inbox a{font-size:12px;color:#c3a5ec}.notification-console td{min-width:130px}.notification-console td small{display:block}.release-notes-page{max-width:1000px;margin:50px auto;padding:0 24px}.release-notes-page>h1{font-size:clamp(40px,7vw,76px);font-weight:800}.release-notes-page .member-panel{margin:26px 0;padding:28px}.release-notes-page h2{font-size:24px;font-weight:700}.release-notes-page p,.release-notes-page time{color:#bcaecb;font-size:13px;line-height:1.9;margin:18px 0}.release-notes-page code{overflow-wrap:anywhere}.release-note-copy{white-space:pre-wrap;overflow-wrap:anywhere}
 @media(max-width:600px){.notification-form-grid,.notification-category-grid{grid-template-columns:1fr}.notification-preferences,.notification-console,.notification-inbox{padding:20px}.notification-device-actions button{width:100%}.notification-inbox .member-panel-title{display:block}.notification-inbox .member-panel-title>div+div{display:flex;flex-wrap:wrap;margin-top:14px}}
+
+/* Free profile-completion mark, distinct from paid cosmetic promotion badges. */
+.profile-complete-badge {
+  display: inline-flex;
+  vertical-align: -0.18em;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-inline-start: .18rem;
+}
+.profile-complete-badge svg {
+  display: block;
+  fill: #a855f7;
+  stroke: #fff;
+  stroke-width: 2;
+  filter: drop-shadow(0 0 5px rgb(168 85 247 / 25%));
+}
+@media (forced-colors: active) {
+  .profile-complete-badge svg { fill: Highlight; stroke: HighlightText; filter: none; }
+}
