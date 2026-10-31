@@ -1,4 +1,4 @@
-import {backendUpgradeRequired} from '../admin/backendCompatibility'
+import {backendUpgradeRequired,loadSocialPlatformDirectory} from '../admin/backendCompatibility'
 import RolePermissions from '../admin/RolePermissions'
 import {adminSections} from '../admin/sections'
 import WorkspaceMetrics from '../admin/WorkspaceMetrics'
@@ -52,7 +52,8 @@ export default function Admin(){
   try{
    let stats=null;if(tab==='overview'){const result=await withTimeout(supabase.rpc('admin_overview'));if(result.error)throw result.error;stats=result.data}
    let listing=null
-   if(!['overview','analytics'].includes(tab)){const {data,error}=await withTimeout(tab==='bank_point_orders'?supabase.rpc('admin_manual_deposits',{p_search:debounced,p_status:filter,p_page:page,p_from:from||null,p_to:to||null}):supabase.rpc('admin_list',{p_resource:tab,p_search:debounced,p_status:filter,p_page:page}));if(error)throw error;if(!data||!Array.isArray(data.rows)||!Number.isFinite(Number(data.total)))throw new Error('Invalid staff data response');listing=data}
+   if(tab==='social_platforms')listing=await loadSocialPlatformDirectory(supabase,debounced,page)
+   else if(!['overview','analytics'].includes(tab)){const {data,error}=await withTimeout(tab==='bank_point_orders'?supabase.rpc('admin_manual_deposits',{p_search:debounced,p_status:filter,p_page:page,p_from:from||null,p_to:to||null}):supabase.rpc('admin_list',{p_resource:tab,p_search:debounced,p_status:filter,p_page:page}));if(error)throw error;if(!data||!Array.isArray(data.rows)||!Number.isFinite(Number(data.total)))throw new Error('Invalid staff data response');listing=data}
    if(id!==generation.current)return
    if(stats)setOverview(stats);setDepositTotals(tab==='bank_point_orders'?listing:null);if(listing){setRows(listing.rows);setTotal(listing.total)}setUpdated(new Date())
   }catch(e){if(id===generation.current){if(backendUpgradeRequired(e)){setUpgrade(true);setError('')}else setError(publicError(e,'We could not complete this staff action. Please retry or contact the platform owner.'));setRows([]);setTotal(0);setUpdated(null)}}finally{if(id===generation.current)setBusy(false)}
@@ -78,7 +79,7 @@ export default function Admin(){
  {allowed&&!upgrade&&role==='super_admin'&&tab==='promotion_campaigns'&&<PromotionPackages/>}
  {allowed&&!upgrade&&role==='super_admin'&&tab==='missions'&&<MissionControls/>}
  {allowed&&!upgrade&&role==='super_admin'&&tab==='point_packages'&&<DCEconomyAdmin/>}
- {allowed&&!upgrade&&role==='super_admin'&&['site_settings','social_platforms'].includes(tab)&&<SocialPlatformSettings/>}
+ {allowed&&!upgrade&&role==='super_admin'&&['site_settings','social_platforms'].includes(tab)&&<SocialPlatformSettings onSaved={()=>setTick(x=>x+1)}/>}
  {allowed&&!upgrade&&tab==='user_roles'&&<RolePermissions/>}
  {allowed&&upgrade?<section className="ad-panel" role="status"><h2>This section needs the backend upgrade</h2><p>The interface is newer than the current database. This is not an empty result, and retrying will not create the missing records. Existing accounts, balances and history are preserved.</p>{tab==='dc_transactions'&&<><p>The full DC snapshot journal has not been created yet. View the original rewards ledger without reconstructing or changing any transactions.</p><button onClick={()=>navigate('points_ledger')}>View existing rewards ledger</button></>}<p>The platform owner must complete the reviewed backup and migration rollout before this feature can operate. Do not reset the database or change roles to bypass this requirement.</p></section>:!allowed?<section className="ad-panel ad-empty"><h2>Permission required</h2><p>Your role cannot access this section.</p></section>:tab==='overview'&&!overview?<section className="ad-panel ad-empty" role="status">{error?'Statistics are unavailable. Retry to load verified data.':'Loading community statistics…'}</section>:tab==='overview'?<>
  <section className="ad-command-deck"><BrandScene compact/><div><span className="ad-eyebrow">THE DANQEL CONTROL ROOM</span><h2>Real people.<br/>Accountable growth.</h2><p>CONNECT. ENGAGE. GROW. Every figure is grounded in recorded activity; every sensitive decision leaves a trail.</p></div><nav aria-label="Priority actions">{[['profiles','Inspect members'],['bank_point_orders','Review manual deposits'],['support_tickets','Respond to members']].filter(([key])=>canView(role,resources.find(r=>r.key===key))).map(([key,title])=><button key={key} onClick={()=>navigate(key)}><AdminNavIcon resource={key}/><span><strong>{title}</strong><small>Open protected workspace</small></span><ArrowUpRight size={17}/></button>)}</nav></section><WorkspaceMetrics key={tick} initial={overview?.workspace_metrics}/>

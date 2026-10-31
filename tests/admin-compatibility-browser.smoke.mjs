@@ -9,10 +9,15 @@ try{
  const user={id,email:'staff@example.org',aud:'authenticated',role:'authenticated',email_confirmed_at:new Date().toISOString(),app_metadata:{provider:'email'},user_metadata:{}}
  const jwt=Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url')+'.'+Buffer.from(JSON.stringify({sub:id,role:'authenticated',aud:'authenticated',exp})).toString('base64url')+'.fixture'
  const session={access_token:jwt,refresh_token:'fixture-refresh',expires_at:exp,expires_in:3600,token_type:'bearer',user}
+ const platformRows=[{key:'instagram',label:'Instagram',hosts:['instagram.com']}];let catalogueResultCount=1
  let metricsMode='missing',role='super_admin'
  await context.route('https://test.supabase.co/**',async route=>{
   const name=new URL(route.request().url()).pathname.split('/').at(-1);let body={},status=200
   const args=route.request().method()==='POST'?route.request().postDataJSON():null;calls.push({name,args})
+  if(name==='social_platforms'){
+   const filter=new URL(route.request().url()).searchParams.get('label')||'';const search=filter.replace(/^ilike\.%|%$/g,'').toLowerCase();body=platformRows.filter(p=>p.label.toLowerCase().includes(search));catalogueResultCount=body.length
+  }
+  if(name==='admin_save_social_platform'){platformRows.push({key:args.p_key,label:args.p_label,hosts:args.p_hosts});body=null}
   if(name==='user')body=user
   if(name==='admin_role')body=role
   if(name==='site_settings')body={id:true,brand_name:'Danqel Social Boost',enabled_platforms:['instagram'],maintenance_mode:false}
@@ -23,9 +28,10 @@ try{
   if(name==='admin_overview')body={profiles:2,social_links:2,open_reports:0,bank_revenue_kobo:0,trend:[{day:'2026-10-31',users:2}]}
   if(name==='admin_list'){
    if(args.p_resource==='dc_transactions'){status=400;body={code:'P0001',message:'Unsupported resource'}}
+   else if(args.p_resource==='social_platforms'){status=400;body={code:'P0001',message:'Unsupported resource'}}
    else body={rows:[{id:'original-1',user_id:id,points:15,reason:'Original credit',created_at:'2026-10-31T00:00:00Z'}],total:6}
   }
-  await route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)})
+  await route.fulfill({status,contentType:'application/json',headers:name==='social_platforms'?{'content-range':catalogueResultCount?'0-'+(catalogueResultCount-1)+'/'+catalogueResultCount:'*/0'}:{},body:JSON.stringify(body)})
  })
  await context.addInitScript(session=>localStorage.setItem('sb-test-auth-token',JSON.stringify(session)),session)
  page.on('pageerror',e=>exceptions.push(e.message));page.setDefaultTimeout(15000)
@@ -38,6 +44,12 @@ try{
  await page.goto(base+'/admin?view=dc_transactions');await page.getByRole('heading',{name:'This section needs the backend upgrade'}).waitFor();await page.getByRole('button',{name:'View existing rewards ledger'}).click();await page.getByRole('cell',{name:'Original credit',exact:true}).waitFor();assert.equal(await page.getByRole('alert').count(),0)
  metricsMode='denied';const previous=calls.filter(c=>c.name==='admin_overview').length;await page.goto(base+'/admin?view=analytics');await page.getByRole('alert').waitFor();assert.equal(calls.filter(c=>c.name==='admin_overview').length,previous,'denial must not fallback');assert.ok(!(await page.locator('body').innerText()).includes('PRIVATE_SENTINEL'));assert.equal(await page.getByRole('button',{name:'Export verified report CSV'}).isDisabled(),true)
  metricsMode='current';await page.goto(base+'/admin?view=analytics');await page.getByText('Total users',{exact:true}).waitFor();assert.equal(await page.getByText('Compatibility mode:',{exact:false}).count(),0)
+ for(const [width,height] of [[320,800],[390,844],[844,390],[768,1024],[1440,1000]]){
+  await page.setViewportSize({width,height});await page.goto(base+'/admin?view=social_platforms');await page.getByRole('cell',{name:'Instagram',exact:true}).waitFor();assert.equal(await page.getByRole('heading',{name:'This section needs the backend upgrade'}).count(),0);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'platform layout '+width)
+ }
+ assert.ok(!calls.some(c=>c.name==='admin_list'&&c.args?.p_resource==='social_platforms'))
+ await page.getByLabel('Platform key',{exact:true}).fill('portfolio');await page.getByLabel('Platform name',{exact:true}).fill('Portfolio');await page.getByLabel('Allowed hosts (comma separated)').fill('example.org');await page.getByLabel('Reason',{exact:true}).fill('Enable approved creator portfolio links');await page.getByRole('button',{name:'Save platform configuration'}).click();await page.getByRole('cell',{name:'Portfolio',exact:true}).waitFor();assert.equal(calls.filter(c=>c.name==='admin_save_social_platform').length,1)
+ await page.getByLabel('Search platform name',{exact:true}).fill('No matching platform');await page.getByRole('heading',{name:'No matching records'}).waitFor();assert.equal(await page.getByRole('alert').count(),0)
  role='user';await page.reload();await page.getByRole('heading',{name:'This workspace is for authorized staff'}).waitFor()
- assert.deepEqual(exceptions,[]);console.log('PASS local browser compatibility: legacy metrics/CSV, five responsive layouts, no analytics list call, original ledger navigation, denial no-fallback/no export, modern path and ordinary denial. Mocked Auth, not production login.')
+ assert.deepEqual(exceptions,[]);console.log('PASS local browser compatibility: existing platform catalogue, audited-save request/refresh/search/five layouts without legacy list dependency; legacy metrics/CSV, five responsive layouts, no analytics list call, original ledger navigation, denial no-fallback/no export, modern path and ordinary denial. Mocked Auth, not production login.')
 }finally{await browser.close()}
