@@ -10,6 +10,8 @@ const profile = {display_name:'Creator',username:'creator',avatar_url:'https://e
 assert.equal(hasCompleteProfile(profile),true);
 assert.equal(hasCompleteProfile({...profile,managed:true}),false);
 assert.equal(hasCompleteProfile(null),false);
+for(const display_name of ['A','New creator'])assert.equal(hasCompleteProfile({...profile,display_name}),false);
+assert.equal(hasCompleteProfile({...profile,username:'ab'}),false);
 for (const key of ['display_name','username','avatar_url','bio','country']) {
   for (const value of [undefined,null,'','   ',42]) assert.equal(hasCompleteProfile({...profile,[key]:value}),false,key);
 }

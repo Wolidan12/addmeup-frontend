@@ -1,3 +1,5 @@
+> **Latest safe-stage update:** `SAFE_STAGED_ROLLOUT.md` records fresh read-only production counts and new browser/regression/rehearsal checks. Source validation is complete; production rollout remains gated on real backup/recovery evidence.
+
 > **Owner revision:** Paystack integration removed; manual Moniepoint only. Earlier six-phase provider requirements are superseded. PR verification is recorded in `MANUAL_PAYMENT_PR.md`; older counts/logs below are time-scoped.
 
 # DANQEL SOCIAL BOOST — remaining production blockers
