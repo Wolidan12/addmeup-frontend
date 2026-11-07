@@ -1,0 +1,80 @@
+name: Private database recovery check
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_confirmation:
+        description: 'Confirm existing project: lohlvenibvohoxtfucfa'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: private-database-recovery
+  cancel-in-progress: false
+
+jobs:
+  recovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Require a private repository and reviewed main
+        env:
+          PRIVATE: ${{ github.event.repository.private }}
+          CONFIRMATION: ${{ inputs.project_confirmation }}
+        run: |
+          test "$PRIVATE" = true || { echo 'STOP: this workflow requires a private repository.'; exit 1; }
+          test "$GITHUB_REF" = refs/heads/main || { echo 'STOP: run reviewed main only.'; exit 1; }
+          test "$CONFIRMATION" = lohlvenibvohoxtfucfa || exit 1
+      - name: Check out reviewed recovery tooling
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install matching clients
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client-17 gnupg
+          test -x /usr/lib/postgresql/17/bin/pg_dump
+          echo '/usr/lib/postgresql/17/bin' >> "$GITHUB_PATH"
+          docker info > /dev/null
+      - name: Fetch reviewed immutable restore image
+        env:
+          IMAGE: ${{ vars.RECOVERY_POSTGRES_IMAGE }}
+        run: |
+          python3 - <<'PY'
+          import os, re, subprocess
+          image = os.environ.get('IMAGE', '')
+          if not re.fullmatch(r'(?:docker\.io/)?supabase/postgres@sha256:[a-f0-9]{64}', image):
+              raise SystemExit('STOP: configure a reviewed, pinned Supabase PostgreSQL 17 image.')
+          result = subprocess.run(['docker', 'pull', image], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+          if result.returncode:
+              raise SystemExit('STOP: could not fetch the reviewed restore image.')
+          PY
+      - name: Back up read-only, verify isolated restore and encrypt
+        env:
+          RECOVERY_REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+          RECOVERY_CONFIRMATION: ${{ inputs.project_confirmation }}
+          RECOVERY_DB_HOST: ${{ secrets.RECOVERY_DB_HOST }}
+          RECOVERY_DB_PASSWORD: ${{ secrets.RECOVERY_DB_PASSWORD }}
+          RECOVERY_CA_CERT_PEM: ${{ secrets.RECOVERY_CA_CERT_PEM }}
+          RECOVERY_ARCHIVE_PASSPHRASE: ${{ secrets.RECOVERY_ARCHIVE_PASSPHRASE }}
+          RECOVERY_POSTGRES_IMAGE: ${{ vars.RECOVERY_POSTGRES_IMAGE }}
+        run: python3 scripts/ci-recovery.py
+      - name: Upload encrypted recovery files only
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: encrypted-recovery-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/danqel-recovery-export/database-recovery.tar.gpg
+            ${{ runner.temp }}/danqel-recovery-export/SHA256SUMS
+            ${{ runner.temp }}/danqel-recovery-export/RESULT.txt
+          if-no-files-found: ignore
+          retention-days: 3
+      - name: Remove disposable restore containers and recovery files
+        if: ${{ always() }}
+        run: |
+          docker ps -aq --filter label=danqel.isolated-restore=true | xargs -r docker rm -fv > /dev/null
+          rm -rf -- "$RUNNER_TEMP"/danqel-recovery-private-* "$RUNNER_TEMP/danqel-recovery-export"

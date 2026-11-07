@@ -4,6 +4,10 @@
 
 This is a workstation workflow, not a browser-console command. On your Windows computer, use **WSL2 Ubuntu in Windows Terminal**, with Docker Desktop's WSL integration. Do not paste database credentials into Arena/chat, GitHub, Render, frontend environment variables or command-line URLs.
 
+## Phone-only alternative
+
+A manual, private GitHub-hosted runner option is documented in `PHONE_RECOVERY_WORKFLOW.md`. It is prepared but not production-run or restore-verified. It requires a private repository, privately configured secrets and a reviewed pinned matching image; it does not execute migrations or deploy. The application repository is currently public, so the workflow will refuse to run there unchanged.
+
 ## 1. Prepare a trusted computer
 
 Have the reviewed repository files available locally, including `scripts/manual-backup.py` from this change. Install:
