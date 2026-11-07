@@ -29,3 +29,17 @@ export async function loadSocialPlatformDirectory(client,search='',page=0){
  if(!Array.isArray(result.data)||!Number.isInteger(result.count)||result.count<0)throw new Error('Invalid platform catalogue response')
  return {rows:result.data,total:result.count}
 }
+
+export async function loadAdminDeposits(client,{search='',status='',page=0,from=null,to=null}={}){
+ const current=await withTimeout(client.rpc('admin_manual_deposits',{p_search:search,p_status:status,p_page:page,p_from:from,p_to:to}))
+ let result=current,readOnly=false
+ if(current.error){
+  // Never route a failed verification/permission check to legacy payment writes.
+  if(!['PGRST202','42883'].includes(current.error.code))throw current.error
+  result=await withTimeout(client.rpc('admin_list',{p_resource:'bank_point_orders',p_search:search,p_status:status,p_page:page}))
+  readOnly=true
+ }
+ if(result.error)throw result.error
+ if(!Array.isArray(result.data?.rows)||!Number.isSafeInteger(result.data.total)||result.data.total<0)throw new Error('Invalid bank-order response')
+ return {...result.data,read_only:readOnly}
+}

@@ -10,7 +10,7 @@ try{
  const jwt=Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url')+'.'+Buffer.from(JSON.stringify({sub:id,role:'authenticated',aud:'authenticated',exp})).toString('base64url')+'.fixture'
  const session={access_token:jwt,refresh_token:'fixture-refresh',expires_at:exp,expires_in:3600,token_type:'bearer',user}
  const platformRows=[{key:'instagram',label:'Instagram',hosts:['instagram.com']}];let catalogueResultCount=1
- let metricsMode='missing',role='super_admin'
+ let metricsMode='missing',role='super_admin',bankMode='missing'
  await context.route('https://test.supabase.co/**',async route=>{
   const name=new URL(route.request().url()).pathname.split('/').at(-1);let body={},status=200
   const args=route.request().method()==='POST'?route.request().postDataJSON():null;calls.push({name,args})
@@ -26,8 +26,13 @@ try{
    else {status=metricsMode==='denied'?403:404;body={code:metricsMode==='denied'?'42501':'PGRST202',message:'PRIVATE_SENTINEL'}}
   }
   if(name==='admin_overview')body={profiles:2,social_links:2,open_reports:0,bank_revenue_kobo:0,trend:[{day:'2026-10-31',users:2}]}
+  if(name==='admin_manual_deposits'){
+   if(bankMode==='missing'){status=404;body={code:'PGRST202',message:'Missing report'}}
+   else body={rows:[{id:'order-original',user_id:id,payer_name:'Fixture Payer',points:100,amount_kobo:10000,status:'submitted',created_at:'2026-10-31T00:00:00Z'}],total:1,gross_kobo:0,refunded_kobo:0,net_kobo:0}
+  }
   if(name==='admin_list'){
    if(args.p_resource==='dc_transactions'){status=400;body={code:'P0001',message:'Unsupported resource'}}
+   else if(args.p_resource==='bank_point_orders'){const matches=(!args.p_search||'Fixture Payer'.includes(args.p_search))&&(!args.p_status||args.p_status==='submitted');body={rows:matches?[{id:'order-original',user_id:id,payer_name:'Fixture Payer',points:100,amount_kobo:10000,status:'submitted',created_at:'2026-10-31T00:00:00Z'}]:[],total:matches?1:0}}
    else if(args.p_resource==='social_platforms'){status=400;body={code:'P0001',message:'Unsupported resource'}}
    else body={rows:[{id:'original-1',user_id:id,points:15,reason:'Original credit',created_at:'2026-10-31T00:00:00Z'}],total:6}
   }
@@ -50,6 +55,13 @@ try{
  assert.ok(!calls.some(c=>c.name==='admin_list'&&c.args?.p_resource==='social_platforms'))
  await page.getByLabel('Platform key',{exact:true}).fill('portfolio');await page.getByLabel('Platform name',{exact:true}).fill('Portfolio');await page.getByLabel('Allowed hosts (comma separated)').fill('example.org');await page.getByLabel('Reason',{exact:true}).fill('Enable approved creator portfolio links');await page.getByRole('button',{name:'Save platform configuration'}).click();await page.getByRole('cell',{name:'Portfolio',exact:true}).waitFor();assert.equal(calls.filter(c=>c.name==='admin_save_social_platform').length,1)
  await page.getByLabel('Search platform name',{exact:true}).fill('No matching platform');await page.getByRole('heading',{name:'No matching records'}).waitFor();assert.equal(await page.getByRole('alert').count(),0)
+ await page.goto(base+'/admin?view=bank_point_orders');await page.getByRole('heading',{name:'Existing bank orders · read-only'}).waitFor();await page.getByRole('cell',{name:'Fixture Payer',exact:true}).waitFor()
+ assert.equal(await page.getByLabel('From date (UTC)').count(),0);assert.equal(await page.getByText('Gross confirmed:',{exact:false}).count(),0)
+ await page.getByRole('button',{name:'Inspect →',exact:true}).click();let details=page.getByRole('dialog');await details.waitFor();assert.equal(await details.getByRole('button',{name:/Confirm received funds|Reject payment|refund/i}).count(),0);await details.getByRole('button',{name:'Close details',exact:true}).click()
+ await page.getByLabel('Search payer name',{exact:true}).fill('Nobody');await page.getByRole('heading',{name:'No matching records'}).waitFor();await page.getByLabel('Search payer name',{exact:true}).fill('Fixture');await page.getByRole('cell',{name:'Fixture Payer',exact:true}).waitFor()
+ const exported=page.waitForEvent('download');await page.getByRole('button',{name:'↓ Export page CSV',exact:true}).click();assert.match((await exported).suggestedFilename(),/bank_point_orders/)
+ bankMode='current';await page.reload();await page.getByText('Gross confirmed:',{exact:false}).waitFor();await page.getByRole('button',{name:'Inspect →',exact:true}).click();await page.getByRole('dialog').getByRole('button',{name:'Confirm received funds & credit DC',exact:true}).waitFor();await page.getByRole('button',{name:'Close details',exact:true}).click()
+ assert.ok(!calls.some(c=>/admin_(confirm|review)_.*deposit|admin_review_bank_order|refund_manual_deposit/.test(c.name)))
  role='user';await page.reload();await page.getByRole('heading',{name:'This workspace is for authorized staff'}).waitFor()
- assert.deepEqual(exceptions,[]);console.log('PASS local browser compatibility: existing platform catalogue, audited-save request/refresh/search/five layouts without legacy list dependency; legacy metrics/CSV, five responsive layouts, no analytics list call, original ledger navigation, denial no-fallback/no export, modern path and ordinary denial. Mocked Auth, not production login.')
+ assert.deepEqual(exceptions,[]);console.log('PASS local browser compatibility: read-only existing bank orders/search/CSV/inspection with no approval/refund controls; current verified-deposit interface retained; existing platform catalogue, audited-save request/refresh/search/five layouts without legacy list dependency; legacy metrics/CSV, five responsive layouts, no analytics list call, original ledger navigation, denial no-fallback/no export, modern path and ordinary denial. Mocked Auth, not production login.')
 }finally{await browser.close()}
