@@ -8,7 +8,7 @@ import {useAuth} from '../context/AuthContext'
 import {useSite} from '../context/SiteContext'
 import {useMember} from './MemberContext'
 
-const links=[['/dashboard','Overview',LayoutDashboard],['/discover','Explore',Compass],['/connections','My connections',Bookmark],['/wallet','Growth Wallet',Wallet],['/missions','Missions & challenges',Target],['/leaderboard','Rewards & leaderboard',Trophy],['/boosts','Boost Center',Flame],['/reward-boosts','Reward multipliers',Flame],['/credits','Buy Growth Credits',CreditCard],['/spend-credits','Spend Credits',Wallet],['/referrals','Referrals',Users],['/promotions','Promotions',Layers3],['/subscriptions','Subscriptions',CalendarClock],['/payments','Payment history',CreditCard],['/notifications','Notifications',Bell],['/settings','My profile',UserRound]]
+const links=[['/dashboard','Overview',LayoutDashboard],['/discover','Explore',Compass],['/connections','My connections',Bookmark],['/wallet','Growth Wallet',Wallet],['/missions','Missions & challenges',Target],['/leaderboard','Rewards & leaderboard',Trophy],['/boosts','Boost Center',Flame],['/reward-boosts','Reward multipliers',Flame],['/deposit','Deposit DC',CreditCard],['/spend-credits','Spend Credits',Wallet],['/referrals','Referrals',Users],['/promotions','Promotions',Layers3],['/subscriptions','Subscriptions',CalendarClock],['/payments','Payment history',CreditCard],['/notifications','Notifications',Bell],['/settings','My profile',UserRound]]
 export default function MemberLayout({children}){
  const {user,signOut}=useAuth(),site=useSite(),{data,error,busy,refresh,referralNotice}=useMember(),{pathname}=useLocation(),[open,setOpen]=useState(false),[logoutError,setLogoutError]=useState('')
  const drawer=useNavigationDrawer(open,()=>setOpen(false))

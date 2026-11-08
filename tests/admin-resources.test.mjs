@@ -38,3 +38,5 @@ for(const file of ['src/pages/Home.jsx','src/pages/Discover.jsx','src/pages/Prof
  assert.ok(!source.includes('Demo mode'))
 }
 console.log('Social URL validation, site-control permissions and demo-removal checks passed')
+
+assert.equal(rowActions('bank_point_orders',{status:'approved',refunds_supported:false},'super_admin').some(a=>a.action==='refund_bank'),false)

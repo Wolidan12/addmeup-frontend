@@ -62,7 +62,7 @@ export function rowActions(resource,row,role){
  if(resource==='social_links'&&mod&&row.is_public)actions.push({action:'hide_social',label:'Hide social link'})
  if(resource==='account_restrictions'&&root)actions.push({action:'reactivate',label:'Remove restriction'})
  if(resource==='user_roles'&&root&&!row.is_self)actions.push({action:'set_role',label:'Assign role'})
- if(resource==='bank_point_orders'&&(root||role==='finance_admin')&&row.status==='approved')actions.push({action:'refund_bank',label:'Record confirmed external refund'})
+ if(resource==='bank_point_orders'&&(root||role==='finance_admin')&&row.status==='approved'&&row.refunds_supported!==false)actions.push({action:'refund_bank',label:'Record confirmed external refund'})
  return actions
 }
 export const formatLabel=s=>({points:'DC amount',balance:'DC balance',cost_points:'Cost (DC)',cost_dc:'Cost (DC)',reward_dc:'Reward (DC)',amount_dc:'Award (DC)',reward_xp:'Creator XP reward',credit_amount:'DC change',previous_balance:'Previous DC balance',new_balance:'New DC balance'}[s]||s.replaceAll('_',' '))

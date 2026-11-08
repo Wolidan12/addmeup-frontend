@@ -28,6 +28,7 @@ const ActivityCenter = lazy(() => import('./pages/ActivityCenter'));
 const ReleaseNotes = lazy(() => import("./pages/ReleaseNotes"));
 const BoostCenter = lazy(() => import("./pages/BoostCenter"));
 const MissionHub = lazy(() => import("./pages/MissionHub"));
+const Deposit = lazy(() => import("./pages/Deposit"));
 const GrowthWallet = lazy(() => import("./pages/GrowthWallet"));
 const SpendCredits = lazy(() => import("./pages/SpendCredits"));
 const Commerce = lazy(() => import("./pages/Commerce"));
@@ -88,7 +89,7 @@ function SiteFrame({ children }) {
     user &&
     ([
       "/dashboard",
-      "/connections", "/wallet", "/spend-credits", "/missions", "/credits", "/notifications", "/leaderboard",
+      "/connections", "/wallet", "/spend-credits", "/missions", "/credits", "/deposit", "/notifications", "/leaderboard",
       "/discover",
       "/rewards",
       "/referrals",
@@ -129,6 +130,7 @@ export default function App() {
                 <Route path="/reward-boosts" element={<Guard><Boosters/></Guard>}/>
                 <Route path="/spend-credits" element={<Guard><BoostCenter/></Guard>}/>
                 <Route path="/missions" element={<Guard><MissionHub/></Guard>}/>
+                <Route path="/deposit" element={<Guard><Deposit/></Guard>}/>
                 <Route path="/credits" element={<Guard><Rewards mode="credits"/></Guard>}/>
                 <Route path="/release-notes" element={<ReleaseNotes/>}/>
                 <Route path="/notifications" element={<Guard><ActivityCenter/></Guard>}/>
