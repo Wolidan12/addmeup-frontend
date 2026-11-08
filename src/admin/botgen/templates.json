@@ -1,0 +1,932 @@
+[
+  {
+    "id": "dbg-01",
+    "name": "WhatsApp Audience Builder",
+    "category": "WhatsApp Growth",
+    "description": "Organize an explicitly opted-in audience; never scrape contacts.",
+    "features": [
+      "Audience name",
+      "Consent source",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "audience_name",
+        "label": "Audience name",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "source_note",
+        "label": "Consent source",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Consent records required"
+    ],
+    "handler": "botgen.01",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Organize an explicitly opted-in audience; never scrape contacts. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-02",
+    "name": "Status Content Assistant",
+    "category": "WhatsApp Growth",
+    "description": "Prepare a Status draft and publishing reminder, not automatic Status publishing.",
+    "features": [
+      "Status topic",
+      "Reminder time",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "topic",
+        "label": "Status topic",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "publish_at",
+        "label": "Reminder time",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Manual publishing required"
+    ],
+    "handler": "botgen.02",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Prepare a Status draft and publishing reminder, not automatic Status publishing. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-03",
+    "name": "Channel Growth Assistant",
+    "category": "WhatsApp Growth",
+    "description": "Plan a channel invitation with honest growth goals.",
+    "features": [
+      "Channel invitation URL",
+      "Invitation copy",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "channel_url",
+        "label": "Channel invitation URL",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "invitation",
+        "label": "Invitation copy",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Voluntary channel joins only"
+    ],
+    "handler": "botgen.03",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Plan a channel invitation with honest growth goals. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-04",
+    "name": "Actual Status Views Recorder",
+    "category": "WhatsApp Growth",
+    "description": "Record actual observed views with manual provenance; never generate views.",
+    "features": [
+      "Post label",
+      "Measurement source",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "post_label",
+        "label": "Post label",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "evidence_note",
+        "label": "Measurement source",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Manual figures are not independently verified"
+    ],
+    "handler": "botgen.04",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Record actual observed views with manual provenance; never generate views. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-05",
+    "name": "Audience Segmentation Bot",
+    "category": "WhatsApp Growth",
+    "description": "Define consent-aware audience segments by declared interests.",
+    "features": [
+      "Segment name",
+      "Declared interest",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "segment_name",
+        "label": "Segment name",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "interest",
+        "label": "Declared interest",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Owner-provided audience data"
+    ],
+    "handler": "botgen.05",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Define consent-aware audience segments by declared interests. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-06",
+    "name": "Contact Consent Manager",
+    "category": "WhatsApp Growth",
+    "description": "Describe an opt-in collection flow and withdrawal instructions.",
+    "features": [
+      "Consent purpose",
+      "Withdrawal instructions",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "purpose",
+        "label": "Consent purpose",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "withdrawal",
+        "label": "Withdrawal instructions",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Explicit purpose-specific opt-in"
+    ],
+    "handler": "botgen.06",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Describe an opt-in collection flow and withdrawal instructions. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-07",
+    "name": "Auto Reply Bot",
+    "category": "Messaging",
+    "description": "Draft a reply within the permitted customer service window.",
+    "features": [
+      "Incoming keyword",
+      "Approved reply",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "keyword",
+        "label": "Incoming keyword",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "reply",
+        "label": "Approved reply",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Official Cloud API and service-window checks"
+    ],
+    "handler": "botgen.07",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Draft a reply within the permitted customer service window. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-08",
+    "name": "Customer Welcome Bot",
+    "category": "Messaging",
+    "description": "Prepare a welcome message for a customer-initiated conversation.",
+    "features": [
+      "Business name",
+      "Welcome message",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "business_name",
+        "label": "Business name",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "welcome",
+        "label": "Welcome message",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Customer-initiated conversation required"
+    ],
+    "handler": "botgen.08",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Prepare a welcome message for a customer-initiated conversation. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-09",
+    "name": "FAQ Assistant",
+    "category": "Messaging",
+    "description": "Maintain a specific approved question and answer.",
+    "features": [
+      "Customer question",
+      "Approved answer",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "question",
+        "label": "Customer question",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "answer",
+        "label": "Approved answer",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Official Cloud API required for delivery"
+    ],
+    "handler": "botgen.09",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Maintain a specific approved question and answer. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-10",
+    "name": "Customer Follow-up Bot",
+    "category": "Messaging",
+    "description": "Plan a permitted follow-up using an approved template.",
+    "features": [
+      "Approved Meta template",
+      "Follow-up eligibility rule",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "template_name",
+        "label": "Approved Meta template",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "followup_rule",
+        "label": "Follow-up eligibility rule",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Consent, suppression and Meta template checks"
+    ],
+    "handler": "botgen.10",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Plan a permitted follow-up using an approved template. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-11",
+    "name": "Customer Support Bot",
+    "category": "Messaging",
+    "description": "Define support triage and human handoff instructions.",
+    "features": [
+      "Issue category",
+      "Human handoff instructions",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "issue_type",
+        "label": "Issue category",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "handoff",
+        "label": "Human handoff instructions",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Human escalation destination required"
+    ],
+    "handler": "botgen.11",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Define support triage and human handoff instructions. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-12",
+    "name": "AI Caption Generator",
+    "category": "Content",
+    "description": "Specify a caption brief for a future server-side AI provider.",
+    "features": [
+      "Content brief",
+      "Brand tone",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "brief",
+        "label": "Content brief",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "tone",
+        "label": "Brand tone",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "AI provider not connected"
+    ],
+    "handler": "botgen.12",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Specify a caption brief for a future server-side AI provider. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-13",
+    "name": "Viral Hook Generator",
+    "category": "Content",
+    "description": "Plan compelling opening lines without promising reach.",
+    "features": [
+      "Topic",
+      "Intended audience",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "topic",
+        "label": "Topic",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "audience",
+        "label": "Intended audience",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "No virality guarantee"
+    ],
+    "handler": "botgen.13",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Plan compelling opening lines without promising reach. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-14",
+    "name": "Hashtag Generator",
+    "category": "Content",
+    "description": "Prepare relevant topic and location tags without engagement claims.",
+    "features": [
+      "Topic",
+      "Location",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "topic",
+        "label": "Topic",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "location",
+        "label": "Location",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Platform publishing remains manual"
+    ],
+    "handler": "botgen.14",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Prepare relevant topic and location tags without engagement claims. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-15",
+    "name": "Content Rewriter",
+    "category": "Content",
+    "description": "Define a source passage and editorial rewrite instruction.",
+    "features": [
+      "Original text",
+      "Rewrite instruction",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "source_text",
+        "label": "Original text",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "instruction",
+        "label": "Rewrite instruction",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Owner must have rights to source content"
+    ],
+    "handler": "botgen.15",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Define a source passage and editorial rewrite instruction. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-16",
+    "name": "Content Calendar Bot",
+    "category": "Content",
+    "description": "Plan a calendar cadence and editorial themes.",
+    "features": [
+      "Editorial themes",
+      "Publishing cadence",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "themes",
+        "label": "Editorial themes",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "cadence",
+        "label": "Publishing cadence",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Reminders require a scheduled worker"
+    ],
+    "handler": "botgen.16",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Plan a calendar cadence and editorial themes. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-17",
+    "name": "Campaign Manager",
+    "category": "Marketing",
+    "description": "Define a campaign objective and consent-based audience.",
+    "features": [
+      "Campaign objective",
+      "Consenting audience",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "objective",
+        "label": "Campaign objective",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "audience_name",
+        "label": "Consenting audience",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "No unsolicited messaging"
+    ],
+    "handler": "botgen.17",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Define a campaign objective and consent-based audience. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-18",
+    "name": "Approved Broadcast Assistant",
+    "category": "Marketing",
+    "description": "Prepare a Meta-approved campaign for opted-in recipients.",
+    "features": [
+      "Approved message template",
+      "Consenting audience",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "template_name",
+        "label": "Approved message template",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "audience_name",
+        "label": "Consenting audience",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Official API, consent and rate controls required"
+    ],
+    "handler": "botgen.18",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Prepare a Meta-approved campaign for opted-in recipients. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-19",
+    "name": "Campaign Link Generator",
+    "category": "Marketing",
+    "description": "Specify a campaign destination and attribution label.",
+    "features": [
+      "HTTPS destination",
+      "Campaign label",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "destination",
+        "label": "HTTPS destination",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "campaign",
+        "label": "Campaign label",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "No deceptive redirects"
+    ],
+    "handler": "botgen.19",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Specify a campaign destination and attribution label. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-20",
+    "name": "QR Code Generator",
+    "category": "Marketing",
+    "description": "Specify a destination and accessible label for a future QR artifact.",
+    "features": [
+      "HTTPS destination",
+      "Accessible label",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "destination",
+        "label": "HTTPS destination",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "label",
+        "label": "Accessible label",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "QR renderer not yet installed"
+    ],
+    "handler": "botgen.20",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Specify a destination and accessible label for a future QR artifact. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-21",
+    "name": "Social Sharing Assistant",
+    "category": "Marketing",
+    "description": "Prepare share copy for a selected social platform.",
+    "features": [
+      "Target platform",
+      "Share copy",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "platform",
+        "label": "Target platform",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "share_copy",
+        "label": "Share copy",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "No automatic cross-platform posting"
+    ],
+    "handler": "botgen.21",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Prepare share copy for a selected social platform. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-22",
+    "name": "Status Views Tracker",
+    "category": "Analytics",
+    "description": "Define a reporting series over observed Status measurements.",
+    "features": [
+      "Measurement series",
+      "Measurement method",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "series_name",
+        "label": "Measurement series",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "measurement_rule",
+        "label": "Measurement method",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Actual observations only; manual provenance retained"
+    ],
+    "handler": "botgen.22",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Define a reporting series over observed Status measurements. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-23",
+    "name": "Channel Analytics Bot",
+    "category": "Analytics",
+    "description": "Define channel metrics with a documented data source.",
+    "features": [
+      "Channel name",
+      "Metric source",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "channel_name",
+        "label": "Channel name",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "source_note",
+        "label": "Metric source",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "No unsupported WhatsApp analytics API claims"
+    ],
+    "handler": "botgen.23",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Define channel metrics with a documented data source. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-24",
+    "name": "Audience Growth Tracker",
+    "category": "Analytics",
+    "description": "Track dated opt-in and opt-out audience changes.",
+    "features": [
+      "Audience name",
+      "Reporting period",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "audience_name",
+        "label": "Audience name",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "period",
+        "label": "Reporting period",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "No fake audience accounts"
+    ],
+    "handler": "botgen.24",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Track dated opt-in and opt-out audience changes. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-25",
+    "name": "Engagement Analytics Bot",
+    "category": "Analytics",
+    "description": "Define engagement calculations using actual supplied records.",
+    "features": [
+      "Metric definition",
+      "Record source",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "metric",
+        "label": "Metric definition",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "source_note",
+        "label": "Record source",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "No estimated data presented as actual"
+    ],
+    "handler": "botgen.25",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Define engagement calculations using actual supplied records. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-26",
+    "name": "Growth Report Generator",
+    "category": "Analytics",
+    "description": "Define a report scope and measurement window.",
+    "features": [
+      "Report title",
+      "Measurement window",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "report_title",
+        "label": "Report title",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "period",
+        "label": "Measurement window",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Completed records only"
+    ],
+    "handler": "botgen.26",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Define a report scope and measurement window. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-27",
+    "name": "Task Scheduler",
+    "category": "System",
+    "description": "Configure a schedule intent for a supported future handler.",
+    "features": [
+      "IANA time zone",
+      "Schedule description",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "timezone",
+        "label": "IANA time zone",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "schedule",
+        "label": "Schedule description",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Durable scheduler not yet deployed"
+    ],
+    "handler": "botgen.27",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Configure a schedule intent for a supported future handler. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-28",
+    "name": "Notification Bot",
+    "category": "System",
+    "description": "Prepare an owner notification rule and its message.",
+    "features": [
+      "Notification trigger",
+      "Notification text",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "trigger",
+        "label": "Notification trigger",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "message",
+        "label": "Notification text",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Delivery integration not yet connected"
+    ],
+    "handler": "botgen.28",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Prepare an owner notification rule and its message. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-29",
+    "name": "Automation Health Monitor",
+    "category": "System",
+    "description": "Define a health threshold for recorded job outcomes.",
+    "features": [
+      "Failure threshold",
+      "Observation window",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "failure_threshold",
+        "label": "Failure threshold",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "window",
+        "label": "Observation window",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Requires real execution records"
+    ],
+    "handler": "botgen.29",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Define a health threshold for recorded job outcomes. Configuration can be saved; execution is not available in this phase."
+  },
+  {
+    "id": "dbg-30",
+    "name": "Backup and Export Bot",
+    "category": "System",
+    "description": "Define a non-secret automation metadata export scope.",
+    "features": [
+      "Metadata scope",
+      "Retention policy",
+      "Persistent owner-only configuration"
+    ],
+    "fields": [
+      {
+        "key": "export_scope",
+        "label": "Metadata scope",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "key": "retention",
+        "label": "Retention policy",
+        "required": true,
+        "maxLength": 2000
+      }
+    ],
+    "permissions": [
+      "Not a production database recovery backup"
+    ],
+    "handler": "botgen.30",
+    "status": "CONFIGURATION_ONLY",
+    "documentation": "Define a non-secret automation metadata export scope. Configuration can be saved; execution is not available in this phase."
+  }
+]

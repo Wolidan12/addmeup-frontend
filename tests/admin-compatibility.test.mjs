@@ -26,10 +26,16 @@ try{
  await db.query("insert into public.user_roles(user_id,role) values($1,'admin')",[admin])
  await db.query('insert into public.points_balance(user_id,balance) values($1,90)',[admin])
  for(let i=0;i<6;i++)await db.query("insert into public.points_ledger(user_id,points,reason,ref_key) values($1,15,'Historical credit',$2)",[admin,'fixture:'+i])
- const snapshot=async()=>JSON.stringify((await db.query("select (select jsonb_agg(u order by id) from auth.users u) users,(select jsonb_agg(p order by id) from public.profiles p) profiles,(select jsonb_agg(l order by id) from public.points_ledger l) ledger,(select jsonb_agg(b order by user_id) from public.points_balance b) balances")).rows)
+ const pkg=crypto.randomUUID();await db.query("insert into public.point_packages(id,title,points,price_kobo) values($1,'Fixture package',100,10000)",[pkg])
+ await db.query("insert into public.bank_point_orders(user_id,package_id,package_title,points,amount_kobo,account_number,account_name,bank_name,status,payer_name) select $1,$2,'Fixture package',100,10000,'6977298247','LUNA ENTRY SERVICES - DANQEL SOCIAL BOOST','MONIEPOINT','submitted','Fixture Payer' from generate_series(1,26)",[member,pkg])
+ const snapshot=async()=>JSON.stringify((await db.query("select (select jsonb_agg(o order by id) from public.bank_point_orders o) bank_orders,(select jsonb_agg(u order by id) from auth.users u) users,(select jsonb_agg(p order by id) from public.profiles p) profiles,(select jsonb_agg(l order by id) from public.points_ledger l) ledger,(select jsonb_agg(b order by user_id) from public.points_balance b) balances")).rows)
  const before=await snapshot()
  async function as(id){await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);await db.exec('set role authenticated')}
  await as(admin)
+ const orderPage=(await db.query("select public.admin_list('bank_point_orders','Fixture Payer','submitted',0) data")).rows[0].data
+ assert.equal(orderPage.total,26);assert.equal(orderPage.rows.length,25)
+ assert.equal((await db.query("select public.admin_list('bank_point_orders','Fixture Payer','submitted',1) data")).rows[0].data.rows.length,1)
+ assert.equal((await db.query("select public.admin_list('bank_point_orders','Fixture Payer','approved',0) data")).rows[0].data.total,0)
  const existingPlatforms=await db.query('select * from public.social_platforms order by key')
  assert.equal(existingPlatforms.rows.length,8)
  await db.query("select public.admin_save_social_platform('portfolio','Portfolio',array['example.org'],true,'Configure approved creator portfolio links')")
@@ -39,7 +45,7 @@ try{
  const ledger=(await db.query("select public.admin_list('points_ledger','','',0) data")).rows[0].data
  assert.equal(ledger.total,6);assert.equal(ledger.rows.length,6)
  await assert.rejects(db.query("select public.admin_list('dc_transactions','','',0)"),/Unsupported resource/)
- await as(member);await assert.rejects(db.query("select public.admin_save_social_platform('intruder','Intruder',array['example.org'],true,'Attempt unauthorized configuration')"),/Permission denied/);await assert.rejects(db.query('select public.admin_overview()'),/Permission denied/)
+ await as(member);await assert.rejects(db.query("select public.admin_list('bank_point_orders','','',0)"),/Permission denied/);await assert.rejects(db.query("select public.admin_save_social_platform('intruder','Intruder',array['example.org'],true,'Attempt unauthorized configuration')"),/Permission denied/);await assert.rejects(db.query('select public.admin_overview()'),/Permission denied/)
  await assert.rejects(db.query("select public.admin_list('points_ledger','','',0)"),/Permission denied/)
  await db.exec('reset role');assert.equal(await snapshot(),before)
  assert.equal((await db.query("select to_regclass('public.dc_transactions') t")).rows[0].t,null)
@@ -59,3 +65,22 @@ assert.ok(catalogueCalls.some(x=>x[0]==='range'&&x[1]===25&&x[2]===49))
 await assert.rejects(loadSocialPlatformDirectory(catalogueClient({error:{code:'42501'}})))
 await assert.rejects(loadSocialPlatformDirectory(catalogueClient({data:[],count:null})),/Invalid platform/)
 console.log('PASS existing social-platform directory: direct RLS read, server search/count/pagination, permission/error propagation; no admin_list dependency.')
+
+const {loadAdminDeposits}=await import('../src/admin/backendCompatibility.js')
+let depositCalls=[]
+function depositsClient(error={code:'PGRST202'}){return {rpc:async(name,args)=>{depositCalls.push({name,args});return name==='admin_manual_deposits'?(error?{error}:{data:{rows:[],total:0,gross_kobo:0,refunded_kobo:0,net_kobo:0}}):{data:{rows:[{id:'preserved',status:'submitted',payer_name:'Fixture Payer'}],total:1}}}}}
+const legacyDeposits=await loadAdminDeposits(depositsClient(),{search:'Fixture',status:'submitted',page:1})
+assert.equal(legacyDeposits.read_only,true);assert.equal(legacyDeposits.total,1);assert.equal('gross_kobo' in legacyDeposits,false)
+assert.deepEqual(depositCalls.map(c=>c.name),['admin_manual_deposits','admin_list'])
+assert.deepEqual(depositCalls[1].args,{p_resource:'bank_point_orders',p_search:'Fixture',p_status:'submitted',p_page:1})
+for(const code of ['42501','PGRST301','request_timeout','XX000']){depositCalls=[];await assert.rejects(loadAdminDeposits(depositsClient({code})));assert.equal(depositCalls.length,1)}
+assert.equal((await loadAdminDeposits(depositsClient(null))).read_only,false)
+const adminCode=await readFile('src/pages/Admin.jsx','utf8');assert.match(adminCode,/tab==='bank_point_orders'&&bankReadOnly\?\[\]:rowActions/);assert.match(adminCode,/operation&&!\(tab==='bank_point_orders'&&bankReadOnly\)/)
+console.log('PASS bank orders: missing-only read fallback, native status/payer search/pagination, no synthetic totals and no legacy mutations exposed.')
+
+for(const total of [null,undefined,-1,0.5,NaN,true,'',{},Number.MAX_SAFE_INTEGER+1]){
+ let attempts=0;await assert.rejects(loadAdminDeposits({rpc:async()=>{attempts++;return {data:{rows:[],total}}}}),/Invalid bank-order response/);assert.equal(attempts,1)
+}
+await assert.rejects(loadAdminDeposits({rpc:async name=>name==='admin_manual_deposits'?{error:{code:'42883'}}:{error:new Error('Protected report denied')}}),/Protected report denied/)
+let networkAttempts=0;await assert.rejects(loadAdminDeposits({rpc:async()=>{networkAttempts++;throw new Error('Offline')}}),/Offline/);assert.equal(networkAttempts,1)
+console.log('PASS bank failure handling: malformed counts fail closed, protected fallback denial propagates and network failures never trigger fallback.')

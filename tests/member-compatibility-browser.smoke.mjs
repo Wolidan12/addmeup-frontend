@@ -10,7 +10,7 @@ try{
  const user={id,email:'member@example.org',aud:'authenticated',role:'authenticated',email_confirmed_at:new Date().toISOString(),app_metadata:{provider:'email'},user_metadata:{}}
  const jwt=Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url')+'.'+Buffer.from(JSON.stringify({sub:id,role:'authenticated',aud:'authenticated',exp})).toString('base64url')+'.fixture'
  const session={access_token:jwt,refresh_token:'fixture-refresh',expires_at:exp,expires_in:3600,token_type:'bearer',user}
- let overviewMode='valid',walletMode='missing',missingBalance=false
+ let overviewMode='valid',walletMode='missing',missingBalance=false,fundingMode='missing',showOrder=false
  await context.route('https://test.supabase.co/**',async route=>{
   const url=new URL(route.request().url()),name=url.pathname.split('/').at(-1);let data=[],status=200
   calls.push({name,url:url.href})
@@ -21,8 +21,9 @@ try{
   if(name==='dc_wallet'){status=walletMode==='denied'?403:404;data={code:walletMode==='denied'?'42501':'PGRST202',message:'PRIVATE_WALLET_SENTINEL'}}
   if(name==='points_balance')data=missingBalance?null:{balance:90}
   if(name==='points_ledger')data=[{id:'original-credit',user_id:id,points:15,reason:'Original preserved credit',created_at:'2026-10-31T00:00:00Z'}]
-  if(name==='bank_point_orders')data=[]
-  await route.fulfill({status,contentType:'application/json',headers:{'content-range':name==='points_ledger'?'0-0/6':'*/0'},body:JSON.stringify(data)})
+  if(name==='dc_settings'){if(fundingMode==='missing'){status=404;data={code:'42P01',message:'PRIVATE_SETTINGS_SENTINEL'}}else data={deposits_enabled:fundingMode==='enabled'}}
+  if(name==='bank_point_orders')data=showOrder?[{id:'preserved-order',user_id:id,package_title:'Preserved deposit',points:100,amount_kobo:10000,status:'awaiting_transfer',created_at:'2026-10-31T00:00:00Z'}]:[]
+  await route.fulfill({status,contentType:'application/json',headers:{'content-range':name==='points_ledger'?'0-0/6':name==='bank_point_orders'&&showOrder?'0-0/1':'*/0'},body:JSON.stringify(data)})
  })
  await context.addInitScript(session=>localStorage.setItem('sb-test-auth-token',JSON.stringify(session)),session)
  page.on('pageerror',e=>exceptions.push(e.message));page.setDefaultTimeout(15000)
@@ -37,5 +38,12 @@ try{
  walletMode='denied';const count=calls.filter(c=>c.name==='points_ledger').length;await page.reload();await page.getByRole('alert').waitFor();assert.equal(calls.filter(c=>c.name==='points_ledger').length,count);assert.ok(!(await page.locator('body').innerText()).includes('PRIVATE_WALLET_SENTINEL'))
  overviewMode='malformed';await page.goto(base+'/dashboard');await page.getByRole('alert').filter({hasText:'No balance is shown'}).waitFor();assert.match(await page.locator('.member-wallet-chip').innerText(),/—/);assert.equal(await page.getByRole('button',{name:'Check in',exact:true}).isDisabled(),true)
  overviewMode='valid';await page.getByRole('button',{name:'Retry',exact:true}).click();await page.getByRole('heading',{name:/Hey, Member Fixture/}).waitFor();await page.locator('.member-wallet-chip').filter({hasText:'90'}).waitFor()
- assert.deepEqual(exceptions,[]);console.log('PASS member browser fixtures: dashboard and read-only wallet at five sizes, original history, owner filters, deposit filters, missing balance not zero, denial without fallback, malformed overview no crash/stale balance, Retry recovery. Not a production login.')
+ showOrder=true
+ for(const [width,height] of [[320,800],[390,844],[844,390],[768,1024],[1440,1000]]){
+  await page.setViewportSize({width,height});await page.goto(base+'/credits');await page.getByText(/Bank transfers are temporarily unavailable/).waitFor();await page.getByText(/Preserved deposit/).waitFor();assert.equal(await page.getByLabel('Naira amount',{exact:true}).count(),0);assert.equal(await page.getByRole('button',{name:'Bank details / submit receipt',exact:true}).count(),0);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'unavailable funding layout '+width)
+ }
+ fundingMode='paused';await page.reload();await page.getByText(/New deposits are paused/).waitFor();assert.equal(await page.getByLabel('Naira amount',{exact:true}).count(),0);await page.getByRole('button',{name:'Bank details / submit receipt',exact:true}).waitFor()
+ fundingMode='enabled';await page.reload();await page.getByLabel('Naira amount',{exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'Continue with manual transfer',exact:true}).isEnabled(),true)
+ assert.ok(!calls.some(c=>/create_manual_deposit|create_bank_point_order|submit_bank_point_order|cancel_bank_point_order/.test(c.name)))
+ assert.deepEqual(exceptions,[]);console.log('PASS member browser fixtures: unavailable funding at five sizes retains order history and hides payment entry/transfer instructions; paused/current states retained, no payment writes; dashboard and read-only wallet at five sizes, original history, owner filters, deposit filters, missing balance not zero, denial without fallback, malformed overview no crash/stale balance, Retry recovery. Not a production login.')
 }finally{await browser.close()}

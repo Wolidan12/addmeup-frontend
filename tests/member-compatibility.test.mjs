@@ -37,3 +37,16 @@ try{
  await db.exec('rollback');assert.equal(await snapshot(),before)
  console.log('PASS member compatibility: baseline member overview for wallet/no-wallet accounts, rolled-back initialization, RLS isolation, response/owner validation, owner-filtered read-only wallet fallback, no fabricated snapshots and no fallback on denial.')
 }finally{await db.close()}
+
+const {loadDepositScreen}=await import('../src/member/depositData.js')
+function depositClient({setting={error:{code:'42P01'}},history={data:[{id:'original-order',user_id:uid,status:'submitted'}],count:1}}={}){
+ return {from(table){const q={select(){return q},eq(key,value){if(table==='bank_point_orders'){assert.equal(key,'user_id');assert.equal(value,uid)}return q},order(){return q},limit(){return q},single(){return q},range(from,to){assert.equal(from,10);assert.equal(to,19);return q},then(resolve,reject){return Promise.resolve(table==='dc_settings'?setting:table==='bank_point_orders'?history:{data:[]}).then(resolve,reject)}};return q}}
+}
+let payment=await loadDepositScreen(depositClient(),uid,1)
+assert.equal(payment.enabled,null);assert.equal(payment.upgrade,true);assert.equal(payment.orders[0].id,'original-order');assert.equal(payment.total,1);assert.equal(payment.historyError,null)
+for(const code of ['42501','request_timeout']){payment=await loadDepositScreen(depositClient({setting:{error:{code}}}),uid,1);assert.equal(payment.enabled,null);assert.equal(payment.upgrade,false);assert.equal(payment.orders.length,1)}
+for(const enabled of [true,false]){payment=await loadDepositScreen(depositClient({setting:{data:{deposits_enabled:enabled}}}),uid,1);assert.equal(payment.enabled,enabled)}
+payment=await loadDepositScreen(depositClient({history:{error:{code:'42501'}}}),uid,1);assert.equal(payment.total,null);assert.equal(payment.orders.length,0);assert.ok(payment.historyError)
+payment=await loadDepositScreen(depositClient({history:{data:[{user_id:other}],count:1}}),uid,1);assert.ok(payment.historyError);assert.equal(payment.orders.length,0)
+const fundingUI=await readFile('src/components/BuyPoints.jsx','utf8');assert.match(fundingUI,/depositsEnabled===true&&<form/);assert.match(fundingUI,/Do not send money/);assert.match(fundingUI,/depositsEnabled!==null&&o.status/)
+console.log('PASS deposit screen: missing/denied configuration never enables payments or hides readable owner history; paused/current states, pagination, cross-owner rejection and unavailable-vs-empty history.')
