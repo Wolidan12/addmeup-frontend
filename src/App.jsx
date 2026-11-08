@@ -1,3 +1,4 @@
+import {isBotWorkspace} from './admin/botgen/ownerAccess'
 import { lazy, Suspense } from "react";
 import { SiteProvider } from "./context/SiteContext";
 const MemberDashboard=lazy(()=>import("./pages/MemberDashboard"));
@@ -37,6 +38,7 @@ const Discover = lazy(() => import("./pages/Discover")),
   Settings = lazy(() => import("./pages/Settings")),
   Rewards = lazy(() => import("./pages/Rewards"));
 const Admin = lazy(() => import("./pages/Admin"));
+const BotOwnerLogin = lazy(() => import("./admin/botgen/OwnerLogin"));
 function Guard({ children }) {
   const { user, loading, sessionError, retrySession } = useAuth();
   const location = useLocation();
@@ -61,7 +63,7 @@ function Guard({ children }) {
     children
   ) : (
     <Navigate
-      to={location.pathname.startsWith("/admin") ? "/admin/login" : "/login"}
+      to={isBotWorkspace(location.pathname,location.search)?"/admin/bots/login":location.pathname.startsWith("/admin") ? "/admin/login" : "/login"}
       state={{ from: location.pathname + location.search }}
       replace
     />
@@ -186,6 +188,8 @@ export default function App() {
                   element={<ProfileDetail managed />}
                 />
                 <Route path="/profile/:username" element={<ProfileDetail />} />
+                <Route path="/admin/bots/login" element={<BotOwnerLogin/>}/>
+                <Route path="/admin/bots" element={<Guard><Navigate to="/admin?view=bot_generator" replace/></Guard>}/>
                 <Route path="/admin/login" element={<Login staff />} />
                 <Route path="/verify" element={<Verify />} />
                 <Route path="/login" element={<Login />} />
