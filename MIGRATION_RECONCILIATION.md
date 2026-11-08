@@ -1,3 +1,5 @@
+> **New live partial rollout:** standalone manual bank transfers were installed as `20261108195733_standalone_manual_bank_transfers` under the owner's explicit recovery-prerequisite waiver. `dc_settings`, nullable order package IDs, verification columns and the manual-deposit RPCs now exist. This is NOT application of 016 or 021 in full. Do not replay 016–023 or the old reconciliation bundle blindly; re-inventory and revise collision/dependency checks first. See `STANDALONE_MANUAL_TRANSFER_INSTALLATION.md`. Other recovery requirements remain unchanged.
+
 > **Recovery update:** The owner confirmed the Free plan has no scheduled backup and no isolated restore test has been performed. `MANUAL_BACKUP_AND_RESTORE.md` now provides a secure free manual-backup/local-restore workflow. Tooling tests are not an actual production backup or restore; rollout remains blocked pending the real run and recovery review.
 
 # Migration reconciliation — 31 October 2026

@@ -10,7 +10,7 @@ try{
  const user={id,email:'member@example.org',aud:'authenticated',role:'authenticated',email_confirmed_at:new Date().toISOString(),app_metadata:{provider:'email'},user_metadata:{}}
  const jwt=Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url')+'.'+Buffer.from(JSON.stringify({sub:id,role:'authenticated',aud:'authenticated',exp})).toString('base64url')+'.fixture'
  const session={access_token:jwt,refresh_token:'fixture-refresh',expires_at:exp,expires_in:3600,token_type:'bearer',user}
- let overviewMode='valid',walletMode='missing',missingBalance=false,fundingMode='missing',showOrder=false
+ let overviewMode='valid',walletMode='missing',missingBalance=false,fundingMode='missing',showOrder=false,bankMismatch=false
  await context.route('https://test.supabase.co/**',async route=>{
   const url=new URL(route.request().url()),name=url.pathname.split('/').at(-1);let data=[],status=200
   calls.push({name,url:url.href})
@@ -22,6 +22,7 @@ try{
   if(name==='points_balance')data=missingBalance?null:{balance:90}
   if(name==='points_ledger')data=[{id:'original-credit',user_id:id,points:15,reason:'Original preserved credit',created_at:'2026-10-31T00:00:00Z'}]
   if(name==='dc_settings'){if(fundingMode==='missing'){status=404;data={code:'42P01',message:'PRIVATE_SETTINGS_SENTINEL'}}else data={deposits_enabled:fundingMode==='enabled'}}
+  if(name==='bank_transfer_details')data={bank_name:'MONIEPOINT',account_number:bankMismatch?'6985263361':'6977298247',account_name:'LUNA ENTRY SERVICES - DANQEL SOCIAL BOOST'}
   if(name==='bank_point_orders')data=showOrder?[{id:'preserved-order',user_id:id,package_title:'Preserved deposit',points:100,amount_kobo:10000,status:'awaiting_transfer',created_at:'2026-10-31T00:00:00Z'}]:[]
   await route.fulfill({status,contentType:'application/json',headers:{'content-range':name==='points_ledger'?'0-0/6':name==='bank_point_orders'&&showOrder?'0-0/1':'*/0'},body:JSON.stringify(data)})
  })
@@ -45,5 +46,12 @@ try{
  fundingMode='paused';await page.reload();await page.getByText(/New deposits are paused/).waitFor();assert.equal(await page.getByLabel('Naira amount',{exact:true}).count(),0);await page.getByRole('button',{name:'Bank details / submit receipt',exact:true}).waitFor()
  fundingMode='enabled';await page.reload();await page.getByLabel('Naira amount',{exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'Continue with manual transfer',exact:true}).isEnabled(),true)
  assert.ok(!calls.some(c=>/create_manual_deposit|create_bank_point_order|submit_bank_point_order|cancel_bank_point_order/.test(c.name)))
- assert.deepEqual(exceptions,[]);console.log('PASS member browser fixtures: unavailable funding at five sizes retains order history and hides payment entry/transfer instructions; paused/current states retained, no payment writes; dashboard and read-only wallet at five sizes, original history, owner filters, deposit filters, missing balance not zero, denial without fallback, malformed overview no crash/stale balance, Retry recovery. Not a production login.')
+ fundingMode='missing'
+ for(const [width,height] of [[320,800],[390,844],[844,390],[768,1024],[1440,1000]]){
+  await page.setViewportSize({width,height});await page.goto(base+'/deposit');await page.getByRole('heading',{name:'Deposit DC.',exact:true}).waitFor();await page.getByText('6977298247',{exact:true}).waitFor();await page.getByText(/Bank transfers are temporarily unavailable/).waitFor();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'deposit layout '+width)
+ }
+ await context.grantPermissions(['clipboard-read','clipboard-write']);await page.getByRole('button',{name:'Copy account number',exact:true}).click();await page.getByText(/Account number copied/).waitFor();assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),'6977298247')
+ bankMismatch=true;await page.reload();await page.getByRole('button',{name:'Retry bank details',exact:true}).waitFor();assert.equal(await page.getByText('6985263361',{exact:true}).count(),0);assert.equal(await page.getByRole('button',{name:'Copy account number',exact:true}).count(),0)
+ bankMismatch=false;await page.getByRole('button',{name:'Retry bank details',exact:true}).click();await page.getByText('6977298247',{exact:true}).waitFor()
+ assert.deepEqual(exceptions,[]);console.log('PASS member browser fixtures: protected deposit page, DB-backed approved beneficiary/copy/five layouts, mismatched details suppressed with retry; unavailable funding at five sizes retains order history and hides payment entry/transfer instructions; paused/current states retained, no payment writes; dashboard and read-only wallet at five sizes, original history, owner filters, deposit filters, missing balance not zero, denial without fallback, malformed overview no crash/stale balance, Retry recovery. Not a production login.')
 }finally{await browser.close()}
