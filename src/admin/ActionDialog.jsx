@@ -1,5 +1,5 @@
 import BankDepositReview from './BankDepositReview'
-import {publicError} from '../lib/errors'
+import {publicError,withTimeout} from '../lib/errors'
 import {useEffect,useRef,useState} from 'react'
 import {supabase} from '../lib/supabase'
 export default function ActionDialog(props){
@@ -7,26 +7,26 @@ export default function ActionDialog(props){
  return <GeneralActionDialog {...props}/>
 }
 function GeneralActionDialog({operation,onClose,onSaved}){
- const dialog=useRef(null),request=useRef(crypto.randomUUID()),[reason,setReason]=useState(''),[value,setValue]=useState(''),[title,setTitle]=useState(''),[body,setBody]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[bankReference,setBankReference]=useState(''),[identity,setIdentity]=useState(''),[received,setReceived]=useState(''),[socialEvidence,setSocialEvidence]=useState(null)
+ const dialog=useRef(null),request=useRef(crypto.randomUUID()),inFlight=useRef(false),[reason,setReason]=useState(''),[value,setValue]=useState(''),[title,setTitle]=useState(''),[body,setBody]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[bankReference,setBankReference]=useState(''),[identity,setIdentity]=useState(''),[received,setReceived]=useState(''),[socialEvidence,setSocialEvidence]=useState(null)
  const {action,label,row}=operation
  useEffect(()=>{dialog.current.showModal()},[])
  useEffect(()=>{if(!['mission_approve','mission_reject'].includes(action)||!row.social_link_id)return;let current=true;supabase.from('social_links').select('platform,url,profile_id').eq('id',row.social_link_id).maybeSingle().then(({data,error})=>{if(current){if(error)setError('The linked account could not be loaded. Retry before approving.');else setSocialEvidence(data)}}).catch(()=>{if(current)setError('The linked account could not be loaded.')});return()=>{current=false}},[action,row.social_link_id])
- async function submit(e){e.preventDefault();setError('');setBusy(true)
+ async function submit(e){e.preventDefault();if(inFlight.current)return;inFlight.current=true;setError('');setBusy(true)
   const payload=action==='adjust_points'?{points:Number(value)}:action==='configure_reward'?{value:Number(value)}:action==='set_role'?{role:value}:action==='toggle_task'?{enabled:!row.is_active}:action==='notify'?{title,body}:{}
   try{
-   const {error}=action.startsWith('promotion_')
-    ?await supabase.rpc('admin_review_promotion',{p_campaign:row.id,p_action:action.replace('promotion_',''),p_reason:reason.trim()})
+   const {error}=await withTimeout(action.startsWith('promotion_')
+    ?supabase.rpc('admin_review_promotion',{p_campaign:row.id,p_action:action.replace('promotion_',''),p_reason:reason.trim()})
     :['mission_approve','mission_reject'].includes(action)
-    ?await supabase.rpc('admin_review_mission',{p_submission:row.id,p_revision:row.revision,p_approve:action==='mission_approve',p_reason:reason.trim(),p_identity:identity.trim()||null})
+    ?supabase.rpc('admin_review_mission',{p_submission:row.id,p_revision:row.revision,p_approve:action==='mission_approve',p_reason:reason.trim(),p_identity:identity.trim()||null})
     :['dc_fulfill','dc_refund'].includes(action)
-    ?await supabase.rpc('admin_dc_review_order',{p_order:row.id,p_complete:action==='dc_fulfill',p_reason:reason.trim()})
+    ?supabase.rpc('admin_dc_review_order',{p_order:row.id,p_complete:action==='dc_fulfill',p_reason:reason.trim()})
     :action==='refund_bank'
-    ?await supabase.rpc('admin_record_manual_refund',{p_order:row.id,p_reference:bankReference,p_amount_kobo:Math.round(Number(received)*100),p_reason:reason.trim()})
+    ?supabase.rpc('admin_record_manual_refund',{p_order:row.id,p_reference:bankReference,p_amount_kobo:Math.round(Number(received)*100),p_reason:reason.trim()})
 
-    :await supabase.rpc('admin_mutate',{p_action:action,p_target:row.id||row.user_id||row.key,p_value:payload,p_reason:reason.trim(),p_request:request.current})
+    :supabase.rpc('admin_mutate',{p_action:action,p_target:row.id||row.user_id||row.key,p_value:payload,p_reason:reason.trim(),p_request:request.current}))
    if(error)throw error
    onSaved(`${label} completed and audit-logged.`);onClose()
-  }catch(e){setError(publicError(e,'We could not complete this staff action. Please retry or contact the platform owner.'))}finally{setBusy(false)}
+  }catch(e){setError(e.code==='request_timeout'?'The result is not confirmed. Check the record before retrying. A timeout does not mean the server cancelled this action.':publicError(e,'We could not complete this staff action. Please retry or contact the platform owner.'))}finally{inFlight.current=false;setBusy(false)}
  }
  return <dialog ref={dialog} className="ad-dialog" aria-labelledby="action-title" onCancel={e=>{if(busy)e.preventDefault();else onClose()}}>
  <form onSubmit={submit}><div className="ad-eyebrow">CONTROLLED ACTION</div><h2 id="action-title">{label}</h2><p>Target: <code>{row.username||row.id||row.user_id||row.key}</code></p><p className="ad-muted">This action changes live data. Authorization is checked in the database and the action is recorded in the audit trail.</p>

@@ -20,7 +20,7 @@ export const resources = [
  {key:'managed_profiles',label:'Managed listings',icon:'◈',group:'Community',columns:['username','display_name','country','is_public','created_at'],search:'Search listing username',roles:[]},
  {key:'point_packages',label:'DC catalogue & packages',icon:'✧',group:'Commerce',columns:['title','points','price_kobo','is_active'],search:'Search credit package',roles:[]},
  {key:'bank_point_orders',label:'Bank transfers',icon:'▤',group:'Commerce',columns:['username','email','points','amount_kobo','status','created_at'],search:'Search username, email or payment reference',filters:['awaiting_transfer','submitted','approved','rejected','cancelled','refunded'],roles:['finance_admin']},
- {key:'profiles',label:'Users & profiles',icon:'◉',group:'Community',columns:['username','display_name','email_confirmed','suspended','creator_xp','created_at'],search:'Search username, email or member UUID',filters:['verified','unverified','suspended'],roles:['moderator','support_agent','finance_admin']},
+ {key:'profiles',label:'Users & profiles',icon:'◉',group:'Community',columns:['username','display_name','email_confirmed','suspended','creator_xp','created_at'],search:'Search username, email or member UUID',filters:['verified','unverified','suspended'],roles:['moderator','support_agent']},
  {key:'social_links',label:'Social accounts',icon:'↗',group:'Community',columns:['platform','profile_id','url','is_public'],search:'Search social URL',filters:['whatsapp','instagram','snapchat','tiktok','facebook','x'],roles:['moderator']},
  {key:'reports',label:'Moderation',icon:'⚑',group:'Community',columns:['reason','profile_id','status','created_at'],search:'Search complaint',filters:['open','resolved','dismissed'],roles:['moderator','support_agent']},
  {key:'points_balance',label:'DC balances & streaks',icon:'✧',group:'Growth',columns:['user_id','balance','current_streak','last_checkin'],search:'Search referral code',roles:['finance_admin']},
@@ -36,7 +36,7 @@ export const resources = [
  {key:'audit_logs',label:'Audit trail',icon:'≡',group:'Operations',columns:['actor_id','action','target','created_at'],search:'Search action',roles:[]},
  {key:'reward_config',label:'Legacy rules (archive)',icon:'⚙',group:'Operations',columns:['key','value'],search:'Search setting key',roles:[]},
 ]
-export const canView=(role,resource)=>role==='super_admin'||resource.roles.includes(role)
+export const canView=(role,resource)=>!!resource&&(role==='super_admin'||resource.roles.includes(role))
 export function rowActions(resource,row,role){
  const root=role==='super_admin',mod=root||role==='moderator'
  const actions=[]
@@ -65,7 +65,7 @@ export function rowActions(resource,row,role){
  if(resource==='bank_point_orders'&&(root||role==='finance_admin')&&row.status==='approved'&&row.refunds_supported!==false)actions.push({action:'refund_bank',label:'Record confirmed external refund'})
  return actions
 }
-export const formatLabel=s=>({points:'DC amount',balance:'DC balance',cost_points:'Cost (DC)',cost_dc:'Cost (DC)',reward_dc:'Reward (DC)',amount_dc:'Award (DC)',reward_xp:'Creator XP reward',credit_amount:'DC change',previous_balance:'Previous DC balance',new_balance:'New DC balance'}[s]||s.replaceAll('_',' '))
+export const formatLabel=s=>({points:'DC amount',balance:'DC balance',cost_points:'Cost (DC)',cost_dc:'Cost (DC)',reward_dc:'Reward (DC)',amount_dc:'Award (DC)',reward_xp:'Creator XP reward',credit_amount:'DC change',previous_balance:'Previous DC balance',new_balance:'New DC balance'}[s]||String(s??'—').replaceAll('_',' '))
 export function csv(rows,columns){
  const cell=value=>{let s=typeof value==='object'&&value!==null?JSON.stringify(value):String(value??'');if(/^[\s]*[=+\-@]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"'}
  return [columns,...rows.map(r=>columns.map(k=>r[k]))].map(r=>r.map(cell).join(',')).join('\r\n')

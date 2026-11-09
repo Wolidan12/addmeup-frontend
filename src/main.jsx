@@ -12,5 +12,6 @@ import "./member/member.css";
 import "./admin/admin.css";
 import "./design/premium.css";
 
+import "./admin/workflow.css";
 import "./design/light.generated.css";
 import "./design/theme.css";

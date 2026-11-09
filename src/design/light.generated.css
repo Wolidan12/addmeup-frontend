@@ -172,6 +172,17 @@ html[data-theme="light"] .bank-review-evidence{border-block:1px solid #a8bedbbb}
 html[data-theme="light"] .bank-review-actions{background:#ffffff}
 html[data-theme="light"] .bank-review-actions button{border:1px solid #a8bedb}
 html[data-theme="light"] .bank-review-actions .ad-primary{background:#edf4ff}
+html[data-theme="light"] .ad-shell .admin-shortcuts button[aria-current=page]{background:#edf4ff;color:#102d54;border-color:#a8bedb}
+html[data-theme="light"] .admin-readable-fields>div{border-bottom:1px solid #a8bedb}
+html[data-theme="light"] .admin-readable-fields dt{color:#2056a0}
+html[data-theme="light"] .admin-record-card{border:1px solid #a8bedb;background:#ffffff}
+html[data-theme="light"] .admin-record-card>p{color:#102d54}
+html[data-theme="light"] .admin-record-card dt{color:#2056a0}
+html[data-theme="light"] .ad-shell .admin-filter-chips [aria-pressed=true]{background:#edf4ff}
+html[data-theme="light"] .ad-shell .admin-bank-summary{border:1px solid #a8bedb}
+@media (max-width:760px){html[data-theme="light"] .admin-shortcuts{background:#ffffff}}
+html[data-theme="light"] .admin-extra-tools{border-top:1px solid #a8bedb}
+html[data-theme="light"] .admin-extra-tools>summary{color:#102d54}
 html[data-theme="light"] .workspace-route-nav{border-bottom:1px solid #a8bedb}
 html[data-theme="light"] .workspace-route-nav a{color:#2056a0}
 html[data-theme="light"] .workspace-route-nav a:hover{background:#ffffff;color:#102d54}
