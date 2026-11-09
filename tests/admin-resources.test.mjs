@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises'
 import {validateImage,MAX_IMAGE_BYTES} from '../src/lib/imageValidation.js'
 import assert from 'node:assert/strict'
 import {resources,canView,rowActions,csv} from '../src/admin/resources.js'
-assert.equal(canView('finance_admin',resources.find(r=>r.key==='profiles')),true) // Billing-only inspection; mutation authorization stays separate.
+assert.equal(canView('finance_admin',resources.find(r=>r.key==='profiles')),false) // Match the inspected server's existing scope; billing remains in deposits/wallets.
 assert.equal(rowActions('profiles',{},'finance_admin').length,0)
 assert.equal(canView('support_agent',resources.find(r=>r.key==='payment_transactions')),false)
 assert.equal(rowActions('profiles',{},'support_agent').some(a=>a.action==='restrict'),false)

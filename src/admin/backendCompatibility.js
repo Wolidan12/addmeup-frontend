@@ -43,3 +43,18 @@ export async function loadAdminDeposits(client,{search='',status='',page=0,from=
  if(!Array.isArray(result.data?.rows)||!Number.isSafeInteger(result.data.total)||result.data.total<0)throw new Error('Invalid bank-order response')
  return {...result.data,read_only:readOnly}
 }
+
+export async function loadAdminUsers(client,{search='',status='',page=0}={}){
+ const args={p_search:search,p_status:status,p_page:page}
+ let result=await withTimeout(client.rpc('admin_user_directory',args)),legacy=false
+ if(result.error){
+  if(!['PGRST202','42883'].includes(result.error.code))throw result.error
+  // The baseline searches username only and ignores profile status entirely.
+  // Never pretend email/UUID search or status filters worked on that endpoint.
+  if(status)throw Object.assign(new Error('User status filters need the current directory service. Clear filters to search usernames.'),{code:'user_filter_unavailable'})
+  result=await withTimeout(client.rpc('admin_list',{p_resource:'profiles',p_search:search,p_status:'',p_page:page}));legacy=true
+ }
+ if(result.error)throw result.error
+ if(!Array.isArray(result.data?.rows)||!Number.isSafeInteger(result.data.total)||result.data.total<0)throw new Error('Invalid user directory response')
+ return {...result.data,legacy_users:legacy}
+}
