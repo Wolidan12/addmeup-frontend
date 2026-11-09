@@ -2,9 +2,11 @@
 
 ## Release status
 
-Backend and frontend implementation are complete and locally tested. **Production paid-feed installation/activation and release merge are not yet performed.** The owner’s earlier recovery waiver was explicitly limited to the standalone manual-deposit installation. A separate activation/recovery decision is required for this new spending-and-visibility release. Do not represent local SQL/Chromium fixtures as production signup, settlement, concurrency or deployment acceptance.
+**Production paid-feed backend is installed and enabled**, migration `20261109052646_purchased_dc_paid_feed_listings`, project `lohlvenibvohoxtfucfa`. The owner explicitly selected **Activate and deploy**, extending the no-backup/restore waiver to this paid-feed release and authorizing installation plus merge of PR #11. This is a waiver, not verified backup/restore evidence. The frontend release is PR #11; Render completion and real signed-in purchase acceptance must be verified separately. Do not represent local SQL/Chromium fixtures as production signup, settlement, concurrency or deployment acceptance.
 
-Production was inspected read-only before implementation: 4 Auth users, 4 profiles, 3 wallets, 90 total DC, 6 ledger entries, 1 submitted deposit and 1 awaiting-transfer deposit. This is an inspection-time snapshot, not a permanent assertion. No approved manual deposits were present. No live order was approved, and none of the existing 90 DC was converted to purchased funds.
+Production before/after installation checks match: **4 Auth users, 4 profiles, 3 wallets, 90 total DC, 6 ledger entries, 2 deposit orders (1 submitted, 1 awaiting transfer)**. The installation’s in-transaction fingerprints also verified preservation of original account/profile/managed-profile/wallet/ledger/deposit/notification/audit rows. Post-checks: 8 exact packages enabled, zero listing orders, zero proven purchased DC, paid-only directory policy `purchased_dc_v1` returning zero rows, RLS enabled on all new tables, anonymous purchase execution denied, direct authenticated order insert/update/truncate denied, and private purchased-balance execution denied. Authenticated checkout execution is enabled.
+
+These are installation-time snapshots, not permanent counts. The empty feed is expected until users have approved purchased DC and buy listing time; nobody was charged and no pending receipt was approved as a test. Original 90 DC remains unchanged, not relabelled as purchased funds. Migration tool request `9c82d31d-97ec-4346-bd68-6e19f886db17` succeeded; its initially null version was resolved from the migration registry to `20261109052646`.
 
 ## Policy and prices
 
@@ -74,6 +76,6 @@ PGlite serializes requests and is not a real production concurrency test. Browse
 
 ## Activation and emergency pause
 
-After the separate recovery/activation decision: verify current schema/migration history and baseline, apply exactly this forward installation once through the migration registry, verify registry/functions/packages/RLS and unchanged original record counts/fingerprints, then merge/deploy the frontend release. Do not approve the member’s pending receipt as an installation test.
+The authorized installation and registry/permission/data-preservation post-checks are complete. Do not rerun the forward installation. Merge/deploy the frontend release, then verify the Render version marker and a genuine owner-approved bank settlement/purchase on a real device. Do not approve the member’s pending receipt merely as an installation test.
 
 Emergency pause: trusted owner SQL may set `public.feed_listing_settings.enabled=false` for the singleton row. This stops new charges while preserving booked service time, wallet/ledger history and paid eligibility. Do not drop financial tables, restore free feed policies, relabel balances, or manually erase ledger entries to roll back a purchase.
