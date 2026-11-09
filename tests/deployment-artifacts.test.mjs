@@ -32,3 +32,6 @@ assert.ok(pushHandler.includes("addEventListener('push'"));assert.ok(pushHandler
 assert.ok(html.includes('name="danqel-build" content="'+release.commit+'"'))
 assert.equal(typeof release.version,'string')
 console.log('Generated service worker imports push handlers; matching build meta, package version and release marker present')
+
+assert.ok(html.includes('/theme-init.js'));assert.ok(worker.includes('theme-init.js'));assert.equal(await readFile('dist/theme-init.js','utf8'),await readFile('public/theme-init.js','utf8'));
+console.log('Persisted theme bootstrap is included in the HTML and offline precache')

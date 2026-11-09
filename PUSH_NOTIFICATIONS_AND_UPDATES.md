@@ -24,7 +24,7 @@ Implemented and tested **locally**, not deployed. Production was inspected read-
 | Daily visit, wallet, Explore and campaign reminder | One combined opt-in daily template, not five separate nudges |
 | Daily missions | Combined daily reminder; targeted mission announcements |
 | Rewards/bonuses | Existing launch/mission notifications plus reviewed announcements |
-| New connections | New `member_connections` insert; pair/day dedup, no DC or XP |
+| New connections | New `member_connections` insert; notification pair/day dedup, no notification-trigger DC or XP. Connection RPC rewards are separate; see CONNECTION_REWARDS_AND_THEME.md |
 | Profile/reward boost changes | Reward multiplier activation/expiry and promotion window expiry |
 | Promotion decisions | Actual campaign status transitions, including approval/rejection/pause/resume |
 | Deposits/refunds | Existing independently verified manual-bank notifications; no Paystack integration restored |

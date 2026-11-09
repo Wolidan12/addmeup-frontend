@@ -1,0 +1,2 @@
+// Run before the app paints. Preferences are device-local, never authentication state.
+(function(){var theme='dark';try{if(localStorage.getItem('danqel_theme')==='light')theme='light'}catch(e){}document.documentElement.dataset.theme=theme;document.documentElement.style.colorScheme=theme;var meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=theme==='light'?'#ffffff':'#07080c'})();

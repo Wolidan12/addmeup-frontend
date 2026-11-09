@@ -15,7 +15,7 @@ Read-only live preflight used the existing project `lohlvenibvohoxtfucfa`: two A
 - Official symbol **DC**. Server-side **₦1 = 1 DC**, including kobo: ₦125.25 settles as exactly 125.25 DC in PostgreSQL numeric arithmetic.
 - Deposit packages 100/500/1,000/5,000/10,000 DC at exactly the same naira amounts. A database constraint rejects arbitrary package conversion rates. Staff can configure package sizes/availability, never exchange rates.
 - Virtual platform credits only, not cash, bank deposits, investment returns or automatically withdrawable money. No withdrawal API, UI or admin toggle exists.
-- Discovery/connections remain free. Repeated favourite/add/remove operations cause neither debits nor automatic rewards. Existing eligible check-ins, evidence-backed tasks and bounded, configurable referral/booster programmes are preserved.
+- Connections remain free. The new connection policy in `CONNECTION_REWARDS_AND_THEME.md` awards 7 reward DC for the first eligible connection to a listed profile, at most 50 per user/UTC day. Repeated favourite/add/remove operations cause neither debits nor additional rewards. Connection rewards are not purchased DC and cannot pay listing fees. Existing eligible check-ins, evidence-backed tasks and bounded, configurable referral/booster programmes are preserved.
 - Six database-backed premium categories: Spotlight, visibility boost, featured placement, social media promotion, cosmetic premium badge, eligible creator campaign. They start **inactive/unpriced**: no invented service prices and no fabricated delivery.
 
 ## Database migrations (apply in order, once)
