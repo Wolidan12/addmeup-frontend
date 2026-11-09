@@ -1,3 +1,4 @@
+import {useFeedRefresh} from '../lib/useFeedRefresh'
 import LaunchPromotion from '../components/LaunchPromotion'
 import {BrandScene} from '../components/Experience'
 import { withTimeout } from "../lib/errors";
@@ -22,6 +23,7 @@ import { useSite } from "../context/SiteContext";
 import { useAuth } from "../context/AuthContext";
 import { supabase, isSupabaseConfigured } from "../lib/supabase";
 export default function Home() {
+  const {tick,track,visible}=useFeedRefresh();
   const site = useSite(),
     { user } = useAuth(),
     [creators, setCreators] = useState([]),
@@ -53,7 +55,7 @@ export default function Home() {
         setLoading(false);
         setFailed(!!directory.error);
         setPackageError(!!promotions.error);
-        if (directory.data) setCreators(directory.data.rows.slice(0, 6));
+        if (directory.data) {track(directory.data);setCreators(directory.data.rows.slice(0, 6));}
         if (promotions.data) setPackages(promotions.data);
       })
       .catch(() => {
@@ -66,7 +68,7 @@ export default function Home() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [tick,track]);
   if (user) return <Navigate to="/dashboard" replace />;
   return (
     <main className="landing-v2">
@@ -86,6 +88,7 @@ export default function Home() {
             <Link className="design-button secondary" to="/discover">
               Explore the community <ArrowRight size={17} />
             </Link>
+            <Link className="design-button secondary" to="/how-it-works">How it works <ArrowRight size={17}/></Link>
           </div>
           <div className="landing-trust-row">
             <span>
@@ -191,7 +194,7 @@ export default function Home() {
           </div>
         ) : creators.length ? (
           <div className="landing-creator-grid">
-            {creators.map((p) => (
+            {creators.filter(visible).map((p) => (
               <ProfileCard key={p.id} p={p} />
             ))}
           </div>

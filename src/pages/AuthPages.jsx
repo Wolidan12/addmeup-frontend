@@ -195,6 +195,7 @@ export function Login({ staff = false }) {
 }
 export function Register() {
   const { signUp } = useAuth(),
+    navigate = useNavigate(),
     [error, setError] = useState(""),
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false);
@@ -205,7 +206,7 @@ export function Register() {
       subtitle="One account. Your social world, connected."
     >
       <LaunchPromotion compact/>
-      <Notice error={error} message={message} />{message&&<Link className="auth-switch" to="/verify">Need another verification email?</Link>}
+      <Notice error={error} message={message} />{message&&<Link className="auth-switch" to="/login">Continue to sign in</Link>}
       <form
         className="auth-form"
         onSubmit={async (e) => {
@@ -215,11 +216,13 @@ export function Register() {
           const f = new FormData(e.currentTarget);
           try {
             const details=registrationDetails({...Object.fromEntries(f),terms_accepted:f.get("terms_accepted")==="on"});
-            const { error } = await signUp(details.email,details.password,details.metadata);
+            const { data, error } = await signUp(details.email,details.password,details.metadata);
             if (error) throw error;
-            setMessage(
-              "Check your email for a verification link. If an account already exists, you can sign in or reset your password.",
-            );
+            if (data?.session?.access_token && data?.session?.user?.id) {
+              navigate("/dashboard", {replace:true});
+            } else {
+              setMessage("Continue by signing in with your email and password. If you already have an account, sign in or reset your password.");
+            }
           } catch (e) {
             setError(
               publicError(

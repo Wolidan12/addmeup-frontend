@@ -53,7 +53,7 @@ export function ProfileCard({ p, onSave, saved }) {
             ? "Managed listing"
             : p.promotion_id
               ? "Paid promotion · "+p.promotion_kind
-              : "Community creator"}
+              : p.feed_listing_paid ? "Paid feed listing" : "Community creator"}
         </span>
         {onSave && (
           <button

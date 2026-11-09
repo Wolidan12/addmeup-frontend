@@ -52,7 +52,7 @@ export function rowActions(resource,row,role){
  if(resource==='profiles'&&root)actions.push({action:'edit_profile',label:'Edit profile details'})
  if(resource==='point_packages'&&root)actions.push({action:'edit_package',label:'Edit package'})
  if(resource==='managed_profiles'&&root)actions.push({action:'edit_listing',label:'Edit listing'})
- if(resource==='bank_point_orders'&&(root||role==='finance_admin')&&row.status==='submitted')actions.push({action:'approve_bank',label:'Confirm received funds & credit DC'},{action:'reject_bank',label:'Reject payment'})
+ if(resource==='bank_point_orders'&&(root||role==='finance_admin')&&row.status==='submitted'&&!row.is_self)actions.push({action:'approve_bank',label:'Approve'},{action:'reject_bank',label:'Decline'})
  if(resource==='profiles'){
   if(mod&&!row.is_self&&(!row.staff_role||row.staff_role==='user'))actions.push(row.suspended?{action:'reactivate',label:'Remove restriction'}:{action:'restrict',label:'Restrict account'})
   if(root)actions.push({action:'adjust_points',label:'Adjust DC balance'});if(root&&!row.is_self)actions.push({action:'set_role',label:'Assign role'})

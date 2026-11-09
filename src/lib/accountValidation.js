@@ -95,3 +95,21 @@ export function profileCompletion(profile, socialCount = 0) {
   ];
   return Math.round((values.filter(Boolean).length / values.length) * 100);
 }
+
+// Basic edits must not clear or replay unchanged optional fields from an old form snapshot.
+// Authorization and field grants remain enforced by Postgres/RLS.
+export function profileUpdate(values, baseline) {
+  const optional = ['country', 'location', 'interests', 'categories'];
+  const comparable = (key, value) => ['interests', 'categories'].includes(key)
+    ? JSON.stringify([...new Set((Array.isArray(value) ? value : String(value || '').split(','))
+      .map(item => String(item).trim()).filter(Boolean))])
+    : String(value ?? '').trim();
+  const unchanged = optional.filter(key => comparable(key, values[key]) === comparable(key, baseline[key]));
+  const draft = {...values};
+  // Do not make users repair an unchanged legacy optional value just to edit their name.
+  for (const key of unchanged) draft[key] = ['interests', 'categories'].includes(key) ? [] : '';
+  const next = profileDetails(draft);
+  for (const key of unchanged) delete next[key];
+  if (next.username === String(baseline.username || '').trim().toLowerCase()) delete next.username;
+  return next;
+}

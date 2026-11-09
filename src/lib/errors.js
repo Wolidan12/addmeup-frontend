@@ -16,6 +16,11 @@ const messages = {
   user_banned: "This account is unavailable. Please contact support.",
 };
 const business = [
+  [/Not enough purchased DC/i, 'You need more purchased DC for this listing. Reward DC cannot pay for feed time.'],
+  [/Listing package changed/i, 'This listing package changed. Refresh the packages and confirm the new price and duration.'],
+  [/Listing needs a public profile/i, 'Save your display name, allow public profile visibility, and add a public social link before buying a listing.'],
+  [/Feed listing purchases are paused/i, 'New feed listing purchases are currently paused. Your existing booked time is unchanged.'],
+  [/Listing request unavailable/i, 'This listing request could not be used. Refresh your listing history before trying again.'],
   [/Package changed|Use Boost Center purchase confirmation/i, 'This package changed. Refresh the catalogue and confirm its current price and duration.'],
   [/Publish a verified eligible profile/i, 'Verify your account and publish a complete public profile before buying a promotion.'],
   [/campaign of this kind is already/i, 'You already have a pending or running campaign of this kind.'],

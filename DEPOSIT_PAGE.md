@@ -30,6 +30,17 @@ The owner explicitly waived the earlier backup/restore prerequisite for this nar
 
 The dedicated frontend route is part of this release; actual Render release completion must be verified separately. Existing deployed `/credits` uses the same newly installed backend contract.
 
-Only whole naira amounts from ₦1 to ₦1,000,000 are supported, at ₦1 = 1 DC. The existing integer wallet schema is preserved. Receipts alone never authorize credit. Approval requires an authorized admin to independently check the receiving-bank statement and enter the exact amount/currency/account and a unique reference. Repeated approval cannot credit twice. No self-approval, automatic refunds, Paystack, unrelated reward credits or migration replay is enabled.
+Only whole naira amounts from ₦1 to ₦1,000,000 are supported, at ₦1 = 1 DC. The existing integer wallet schema is preserved. Receipts alone never authorize credit. Approval requires an authorized admin to independently check the receiving-bank statement and explicitly confirm the displayed exact NGN amount/receiving account and enter an independent unique bank-statement reference. Repeated approval cannot credit twice. No self-approval, automatic refunds, Paystack, unrelated reward credits or migration replay is enabled.
 
 See `STANDALONE_MANUAL_TRANSFER_INSTALLATION.md` for evidence, limitations and future migration collisions. Full real-browser Auth/receipt upload/actual bank settlement acceptance remains unverified; no real bank transfer was performed here.
+
+
+## Compact admin review
+
+Submitted deposits expose **Approve** and **Decline** directly in the admin list and in record inspection. Self-review controls are hidden; server authorization and self-review denial remain authoritative.
+
+- Approve: review the displayed amount/recipient, enter the receiving-bank statement reference, and explicitly confirm receipt of the exact amount with no reused transfer. The member's claimed reference is never prefilled. The existing RPC receives the displayed amount/NGN/account only after that confirmation; staff no longer retype these values.
+- Decline: choose a short reason (funds missing, amount mismatch, invalid receipt), or supply a custom reason of at least eight characters. No credit fields are submitted for a decline. Reasons are member-visible.
+- Receipt/order details and optional notes are collapsed. The dialog is viewport-bounded and scrollable, with wrapping long references and a bounded receipt preview. Pending requests disable controls and prevent duplicate submits/cancellation.
+
+Validation: `npm test` includes `tests/bank-review.test.mjs`. Optional Chromium fixtures `tests/bank-review-browser.smoke.mjs` cover five portrait/landscape sizes (including 320px width), direct actions, long references, explicit confirmation, duplicate-submit suppression, decline fields, sanitized errors and retry. Existing manual-deposit and admin-compatibility browser suites also pass. These are local mocked transport/Auth checks, **not production login or settlement evidence**. No backend migration, live order approval, balance adjustment or deployment is part of this UI change.
