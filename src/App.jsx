@@ -22,6 +22,8 @@ import {
   DeleteAccount,
   NotFound,
 } from "./pages/Legal";
+const FeedListings = lazy(() => import('./pages/FeedListings'));
+const HowItWorks = lazy(() => import('./pages/HowItWorks'));
 const Install = lazy(() => import('./pages/Install'));
 const Connections = lazy(() => import('./pages/Connections'));
 const ActivityCenter = lazy(() => import('./pages/ActivityCenter'));
@@ -88,7 +90,7 @@ function SiteFrame({ children }) {
   const member =
     user &&
     ([
-      "/dashboard",
+      "/dashboard", "/how-it-works", "/list-profile",
       "/connections", "/wallet", "/spend-credits", "/missions", "/credits", "/deposit", "/notifications", "/leaderboard",
       "/discover",
       "/rewards",
@@ -130,6 +132,7 @@ export default function App() {
                 <Route path="/reward-boosts" element={<Guard><Boosters/></Guard>}/>
                 <Route path="/spend-credits" element={<Guard><BoostCenter/></Guard>}/>
                 <Route path="/missions" element={<Guard><MissionHub/></Guard>}/>
+                <Route path="/list-profile" element={<Guard><FeedListings/></Guard>}/>
                 <Route path="/deposit" element={<Guard><Deposit/></Guard>}/>
                 <Route path="/credits" element={<Guard><Rewards mode="credits"/></Guard>}/>
                 <Route path="/release-notes" element={<ReleaseNotes/>}/>
@@ -185,6 +188,7 @@ export default function App() {
                 />
                 <Route path="/" element={<Home />} />
                 <Route path="/discover" element={<Discover />} />
+                <Route path="/how-it-works" element={<HowItWorks />} />
                 <Route
                   path="/listing/:username"
                   element={<ProfileDetail managed />}

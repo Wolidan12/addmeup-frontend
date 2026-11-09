@@ -1,7 +1,8 @@
-import { ExperienceBanner } from "../components/Experience";
+import FeedListingInfo from "../components/FeedListingInfo";
+import "./simpleProfile.css";
 import WorkspaceNav from "../components/WorkspaceNav";
 import { InputError, publicError, withTimeout } from "../lib/errors";
-import { profileDetails, profileCompletion } from "../lib/accountValidation";
+import { profileUpdate, profileCompletion } from "../lib/accountValidation";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, UserRound, Link2, Trash2 } from "lucide-react";
@@ -38,6 +39,8 @@ export default function Settings() {
     [error, setError] = useState(""),
     [remove, setRemove] = useState(null);
   const hydrated = useRef(null),
+    baseline = useRef(initial),
+    inFlight = useRef(false),
     dialog = useRef(null),
     generation = useRef(0);
   const label = (p) =>
@@ -45,12 +48,14 @@ export default function Settings() {
   useEffect(() => {
     if (data?.profile?.id === user.id && hydrated.current !== user.id) {
       const p = data.profile;
-      setForm({
+      const loaded = {
         ...initial,
         ...p,
         interests: (p.interests || []).join(", "),
         categories: (p.categories || []).join(", "),
-      });
+      };
+      baseline.current = loaded;
+      setForm(loaded);
       hydrated.current = user.id;
     }
   }, [data, user.id]);
@@ -91,13 +96,14 @@ export default function Settings() {
   }, [remove]);
   async function save(e) {
     e.preventDefault();
-    if (busy) return;
+    if (inFlight.current) return;
+    inFlight.current = true;
     setBusy(true);
     setMessage("");
     setError("");
     const request = generation.current;
     try {
-      const permitted = profileDetails(form);
+      const permitted = profileUpdate(form, baseline.current);
       const { data, error } = await withTimeout(
         supabase
           .from("profiles")
@@ -116,18 +122,22 @@ export default function Settings() {
         throw new InputError(
           "Your profile could not be updated. Refresh and try again.",
         );
-      if (request === generation.current)
+      if (request === generation.current) {
+        baseline.current = form;
         setMessage("Your profile has been updated.");
+      }
       await refresh();
     } catch (e) {
       if (request === generation.current) setError(publicError(e));
     } finally {
+      inFlight.current = false;
       if (request === generation.current) setBusy(false);
     }
   }
   async function social(e) {
     e.preventDefault();
-    if (busy) return;
+    if (inFlight.current) return;
+    inFlight.current = true;
     setBusy(true);
     setMessage("");
     setError("");
@@ -171,11 +181,13 @@ export default function Settings() {
     } catch (e) {
       if (request === generation.current) setError(publicError(e));
     } finally {
+      inFlight.current = false;
       if (request === generation.current) setBusy(false);
     }
   }
   async function removeLink() {
-    if (!remove || busy) return;
+    if (!remove || inFlight.current) return;
+    inFlight.current = true;
     setBusy(true);
     setError("");
     const request = generation.current;
@@ -202,17 +214,18 @@ export default function Settings() {
     } catch (e) {
       if (request === generation.current) setError(publicError(e));
     } finally {
+      inFlight.current = false;
       if (request === generation.current) setBusy(false);
     }
   }
   return (
-    <main>
+    <main className="simple-profile">
       <WorkspaceNav community />
       <div className="member-page-heading">
         <div>
           <p className="member-eyebrow">YOUR STORY. YOUR COMMUNITY.</p>
           <h1>Make it yours.</h1>
-          <p>Build a profile that feels like you. Choose what you share.</p>
+          <p>Add your name, a short intro and the social link you want to share.</p>
         </div>
         {data?.profile && (
           <Link
@@ -223,69 +236,18 @@ export default function Settings() {
           </Link>
         )}
       </div>
-      <ExperienceBanner
-        title="A profile that feels like you."
-        description="Your portrait, your story, your social world. Make it unmistakably yours."
-      />
-      <section
-        className="account-progress member-panel"
-        aria-label="Your account progress"
-      >
-        <div>
-          <span>Creator XP</span>
-          <strong>
-            {Number(data?.profile?.creator_xp || 0).toLocaleString()}
-          </strong>
-          <small>Non-spendable mission XP, never purchased</small>
-        </div>
-        <div>
-          <span>Creator rank</span>
-          <strong>{data?.profile?.creator_rank || "View missions"}</strong>
-          <small>Starter → Rising Creator → Influencer → Trendsetter → Elite Creator</small>
-        </div>
-        <div>
-          <span>Growth Credits</span>
-          <strong>
-            {data?.balance?.balance!=null ? Number(data.balance.balance).toLocaleString() : "—"}
-          </strong>
-          <small>Private balance · not editable here</small>
-        </div>
-        <div>
-          <span>Profile strength</span>
-          <strong>{profileCompletion(data?.profile, links.length)}%</strong>
-          <progress
-            aria-label="Profile strength"
-            value={profileCompletion(data?.profile, links.length)}
-            max="100"
-          />
-        </div>
-        <p>
-          Member since{" "}
-          {data?.profile?.created_at
-            ? new Date(data.profile.created_at).toLocaleDateString()
-            : "—"}
-          . This optional strength score includes a social link. Launch eligibility uses name, username, photo, bio, country and interests; linking a social account is not required for launch.
-        </p>
-      </section>
-      <ProfilePhoto
-        current={form.avatar_url}
-        onSaved={(avatar_url) => {
-          setForm((f) => ({ ...f, avatar_url }));
-          refresh();
-        }}
-      />
       <section className="member-panel member-settings-panel">
         <div className="member-panel-title">
           <div>
-            <h2>Profile details</h2>
+            <h2>1. Your profile</h2>
             <p>
-              Your email stays private. Public profile details are visible to
-              the community.
+              Start with the basics. Your username is reused from signup; extra details are optional.
             </p>
           </div>
           <UserRound size={20} />
         </div>
-        <form onSubmit={save} className="member-settings-form">
+        <form onSubmit={save} className="member-settings-form simple-profile-form" onInvalidCapture={e=>{const extra=e.target.closest("details");if(extra)extra.open=true}}>
+          <fieldset className="simple-profile-fields" disabled={busy || !data || data.restricted}>
           <label>
             Display name
             <input
@@ -298,6 +260,22 @@ export default function Settings() {
               }
             />
           </label>
+          <label className="member-full-width">
+            Short bio (optional)
+            <textarea
+              aria-label="Bio"
+              maxLength={280}
+              rows={2}
+              placeholder="What do you do or enjoy?"
+              value={form.bio || ""}
+              onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
+            />
+          </label>
+          <p className="simple-profile-username">Your profile address: <strong>@{form.username || 'your_username'}</strong></p>
+          <details className="simple-profile-extras member-full-width">
+            <summary>Optional details & username</summary>
+            <p>Keep your existing username, or change it here. Country, location, interests and categories are optional and are not a payment requirement.</p>
+            <div className="member-settings-form">
           <label>
             Username
             <input
@@ -312,16 +290,6 @@ export default function Settings() {
                   username: e.target.value.toLowerCase(),
                 }))
               }
-            />
-          </label>
-          <label className="member-full-width">
-            Bio
-            <textarea
-              aria-label="Bio"
-              maxLength={280}
-              rows={3}
-              value={form.bio || ""}
-              onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
             />
           </label>
           <label>
@@ -364,6 +332,8 @@ export default function Settings() {
               }
             />
           </label>
+            </div>
+          </details>
           <label className="member-check member-full-width">
             <input
               className="w-auto"
@@ -373,8 +343,9 @@ export default function Settings() {
                 setForm((f) => ({ ...f, is_public: e.target.checked }))
               }
             />
-            Show my profile in the public community directory
+            Allow my profile to be public
           </label>
+          <p className="simple-profile-help member-full-width">This controls visibility only. Saving does not buy feed time or deduct DC.</p>
           <div className="member-full-width">
             <button
               className="member-primary"
@@ -383,15 +354,23 @@ export default function Settings() {
               {busy ? "Saving…" : "Save profile"}
             </button>
           </div>
+          </fieldset>
         </form>
       </section>
+      <ProfilePhoto
+        current={form.avatar_url}
+        onSaved={(avatar_url) => {
+          setForm((f) => ({ ...f, avatar_url }));
+          refresh();
+        }}
+      />
+
       <section className="member-panel member-settings-panel mt-6">
         <div className="member-panel-title">
           <div>
-            <h2>Your social connections</h2>
+            <h2>2. Your social link</h2>
             <p>
-              Link format is validated. Ownership verification is not connected;
-              no unearned verification badges are shown.
+              Choose a platform, add your own profile link and save. No social password needed. Link format is checked, not account ownership.
             </p>
           </div>
           <Link2 size={20} />
@@ -414,6 +393,7 @@ export default function Settings() {
           </div>
           {site.enabled_platforms.includes(platform) ? (
             <form className="member-full-width space-y-4" onSubmit={social}>
+              <fieldset className="simple-social-fields" disabled={busy || !data || data.restricted}>
               <label>
                 {label(platform)}{" "}
                 {platform === "whatsapp"
@@ -442,6 +422,7 @@ export default function Settings() {
               >
                 {busy ? "Saving…" : "Save social link"}
               </button>
+              </fieldset>
             </form>
           ) : (
             <p>No social platform is currently selected or available.</p>
@@ -496,6 +477,50 @@ export default function Settings() {
           </ul>
         </div>
       </section>
+      <FeedListingInfo profileVersion={data?.profile}/>
+      <details className="simple-profile-extras simple-profile-account"><summary>Account progress & rewards (optional)</summary>
+      <section
+        className="account-progress member-panel"
+        aria-label="Your account progress"
+      >
+        <div>
+          <span>Creator XP</span>
+          <strong>
+            {Number(data?.profile?.creator_xp || 0).toLocaleString()}
+          </strong>
+          <small>Non-spendable mission XP, never purchased</small>
+        </div>
+        <div>
+          <span>Creator rank</span>
+          <strong>{data?.profile?.creator_rank || "View missions"}</strong>
+          <small>Starter → Rising Creator → Influencer → Trendsetter → Elite Creator</small>
+        </div>
+        <div>
+          <span>Growth Credits</span>
+          <strong>
+            {data?.balance?.balance!=null ? Number(data.balance.balance).toLocaleString() : "—"}
+          </strong>
+          <small>Private balance · not editable here</small>
+        </div>
+        <div>
+          <span>Profile strength</span>
+          <strong>{profileCompletion(data?.profile, links.length)}%</strong>
+          <progress
+            aria-label="Profile strength"
+            value={profileCompletion(data?.profile, links.length)}
+            max="100"
+          />
+        </div>
+        <p>
+          Member since{" "}
+          {data?.profile?.created_at
+            ? new Date(data.profile.created_at).toLocaleDateString()
+            : "—"}
+          . This optional strength score includes a social link. Launch eligibility uses name, username, photo, bio, country and interests; linking a social account is not required for launch.
+        </p>
+      </section>
+
+      </details>
       {remove && (
         <dialog
           className="member-dialog"
@@ -545,7 +570,7 @@ export default function Settings() {
           {error}
         </p>
       )}
-      <NotificationInbox onRead={refresh} />
+      <details className="simple-profile-extras simple-profile-account"><summary>My notifications</summary><NotificationInbox onRead={refresh} /></details>
       <p className="text-xs text-slate-500 mt-5">
         Signed in as {user.email}.{" "}
         <Link className="underline" to="/delete-account">

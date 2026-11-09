@@ -67,3 +67,8 @@ Hosted preview creation was denied with `402 entitlement_required` / branching l
 ## Failure / recovery
 
 Before commit, SQL failure rolls back the entire forward transaction. Do not remove checks to force a pass. After commit, prefer a reviewed corrective forward migration; do not drop feature tables, delete ledger rows or reset wallets. If restoration is necessary, the designated owner follows the verified recovery plan and accounts for writes after the recovery point. Database transaction rollback tests do not replace that recovery plan.
+
+
+## Paid-feed forward release
+
+`supabase/manual/install_paid_feed_listings.sql` is a separately reviewed forward installation for the actual 001–015 + 024 + standalone-deposit baseline. It adds purchased-only timed listings, atomic debits, owner history and paid-gated directory/profile reads while fingerprint-preserving original records. See `PAID_FEED_LISTING_POLICY.md` for activation/recovery status. It is not permission to replay 016–023: in particular 020 replaces the directory/profile RPCs and would collide with the paid-only contract. Any future historical-migration reconciliation must preserve the paid feed gate and purchased-only debits.

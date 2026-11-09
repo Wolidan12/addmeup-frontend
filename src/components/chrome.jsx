@@ -85,6 +85,7 @@ export function Footer() {
         </nav>
         <nav aria-label="Help and policies">
           <h2>Here for you</h2>
+          <Link to="/how-it-works">How it works</Link>
           <Link to="/support">Help & support</Link>
           <Link to="/install">Install app</Link>
           <Link to="/privacy">Privacy policy</Link>
