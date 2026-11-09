@@ -21,3 +21,7 @@ Validation:
 Optional browser tools: install `playwright` and `@sparticuz/chromium` without saving dependencies; run a fixture-only Vite server at port 5174 with `VITE_SUPABASE_URL=https://test.supabase.co` and `VITE_SUPABASE_ANON_KEY=test-key`. Set `TEST_BASE_URL` if using a different port. These tests are not production-login or deployment evidence. No live records or balances were changed.
 
 Email confirmation is no longer a signup step: production Auth auto-confirm is enabled at the owner’s request. This does not establish mailbox ownership or identity verification. Password recovery still uses email.
+
+## Connection rewards and display preference
+
+Real eligible connections now use the policy in `CONNECTION_REWARDS_AND_THEME.md`: 7 reward DC to the connecting member, once per pair, at most 50 rewarded connections per UTC day (350 DC). Reconnect/save/block and the fictional walkthrough do not earn rewards. Connections remain free after the cap; reward DC cannot pay feed listing fees. The global Light mode / Dark mode control persists the device’s choice across public, sign-in, member and admin pages. Dark remains the default. Production activation status is recorded in that release document.
