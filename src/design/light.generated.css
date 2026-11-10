@@ -843,6 +843,9 @@ html[data-theme="light"] .inspector-record{border:1px solid #a8bedbbb}
 html[data-theme="light"] .workspace-dialog blockquote{border-left:2px solid #a8bedb;background:#e3efff04}
 html[data-theme="light"] .support-desk input,html[data-theme="light"] .support-desk textarea,html[data-theme="light"] .support-desk select,html[data-theme="light"] .dc-wallet .ad-panel input{background:#ffffff;color:#102d54;border:1px solid #a8bedbbb}
 html[data-theme="light"] .support-desk blockquote{border-left:2px solid #a8bedb}
+html[data-theme="light"] .member-social-current{border:1px solid #a8bedbbb;background:#e3efff0d}
+html[data-theme="light"] .member-social-editor{border:1px solid #a8bedbbb;background:#e3efff08}
+html[data-theme="light"] .member-social-editor input:not([type=checkbox]),html[data-theme="light"] .member-social-editor textarea{border:1px solid #a8bedbbb;background:#e3efff0d}
 html[data-theme="light"] .member-shell{--m-bg:#ffffff;--m-panel:#ffffff;--m-line:#a8bedb;--m-muted:#405b7e;--m-text:#102d54;--m-accent:#2056a0}
 html[data-theme="light"] .member-sidebar{background:#ffffff}
 html[data-theme="light"] .member-brand-mark{background:linear-gradient(140deg,#e3efff,#edf4ff);box-shadow:0 4px 20px #23487520}
