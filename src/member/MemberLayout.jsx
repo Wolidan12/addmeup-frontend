@@ -3,12 +3,12 @@ import {useNavigationDrawer} from '../lib/useNavigationDrawer'
 import BrandLogo from '../components/BrandLogo'
 import {useState} from 'react'
 import {Link,NavLink,useLocation} from 'react-router-dom'
-import {LayoutDashboard,Compass,Wallet,Users,Flame,UserRound,LogOut,ShieldCheck,ArrowUpRight,Menu,X,Bell,RefreshCw,LifeBuoy,Layers3,CreditCard,CalendarClock,Bookmark,Trophy,Target} from 'lucide-react'
+import {LayoutDashboard,Compass,Wallet,Users,Flame,UserRound,LogOut,ShieldCheck,ArrowUpRight,Menu,X,Bell,RefreshCw,LifeBuoy,Layers3,CreditCard,CalendarClock,Bookmark,Trophy,Target,Gift} from 'lucide-react'
 import {useAuth} from '../context/AuthContext'
 import {useSite} from '../context/SiteContext'
 import {useMember} from './MemberContext'
 
-const links=[['/how-it-works','How it works',LifeBuoy],['/dashboard','Overview',LayoutDashboard],['/discover','Explore',Compass],['/connections','My connections',Bookmark],['/wallet','Growth Wallet',Wallet],['/missions','Missions & challenges',Target],['/leaderboard','Rewards & leaderboard',Trophy],['/boosts','Boost Center',Flame],['/reward-boosts','Reward multipliers',Flame],['/deposit','Deposit DC',CreditCard],['/spend-credits','Spend Credits',Wallet],['/referrals','Referrals',Users],['/promotions','Promotions',Layers3],['/subscriptions','Subscriptions',CalendarClock],['/payments','Payment history',CreditCard],['/notifications','Notifications',Bell],['/list-profile','List my profile',CalendarClock],['/settings','My profile',UserRound]]
+const links=[['/how-it-works','How it works',LifeBuoy],['/dashboard','Overview',LayoutDashboard],['/rewards','5,000 DC launch reward',Gift],['/discover','Explore',Compass],['/connections','My connections',Bookmark],['/wallet','Growth Wallet',Wallet],['/missions','Missions & challenges',Target],['/leaderboard','Rewards & leaderboard',Trophy],['/boosts','Boost Center',Flame],['/reward-boosts','Reward multipliers',Flame],['/deposit','Deposit DC',CreditCard],['/spend-credits','Spend Credits',Wallet],['/referrals','Referrals',Users],['/promotions','Promotions',Layers3],['/subscriptions','Subscriptions',CalendarClock],['/payments','Payment history',CreditCard],['/notifications','Notifications',Bell],['/list-profile','List my profile',CalendarClock],['/settings','My profile',UserRound]]
 export default function MemberLayout({children}){
  const {user,signOut}=useAuth(),site=useSite(),{data,error,busy,refresh,referralNotice}=useMember(),{pathname}=useLocation(),[open,setOpen]=useState(false),[logoutError,setLogoutError]=useState('')
  const drawer=useNavigationDrawer(open,()=>setOpen(false))

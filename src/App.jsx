@@ -214,7 +214,7 @@ export default function App() {
                   path="/rewards"
                   element={
                     <Guard>
-                      <MissionHub />
+                      <Rewards />
                     </Guard>
                   }
                 />
