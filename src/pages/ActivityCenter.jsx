@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Bell, Trophy, Flame, ArrowUpRight, ShieldCheck } from "lucide-react";
 import { useMember } from "../member/MemberContext";
 import NotificationInbox from "../components/NotificationInbox";
+import LaunchPromotion from "../components/LaunchPromotion";
 import { ExperienceBanner, EmptyState } from "../components/Experience";
 export default function ActivityCenter({ rankings = false }) {
   const { data, refresh } = useMember();
@@ -31,6 +32,7 @@ export default function ActivityCenter({ rankings = false }) {
             : "Account updates, moderation messages and payment decisions, together in your private inbox."
         }
       />
+      {!rankings && <LaunchPromotion compact onAward={refresh} />}
       {rankings ? (
         <>
           <section className="member-stats member-referral-stats">

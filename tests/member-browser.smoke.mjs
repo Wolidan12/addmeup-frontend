@@ -39,6 +39,7 @@ await context.route('https://test.supabase.co/**',async route=>{
 
  if(table==='site_settings')json=site
  if(table==='member_overview')json=overview
+ if(table==='launch_status')json={status:'active',total_slots:50,reward_dc:5000,awarded_count:3,remaining_slots:47,total_distributed_dc:15000,maximum_distribution_dc:250000,credits_expire:false,opened_at:new Date().toISOString(),eligibility:{registered:true,verified:true,profile_complete:false,already_awarded:false},award:null}
  if(table==='public_directory'||table==='member_referrals')json={rows:[],total:0}
  if(table==='profiles')json=profile
  if(table==='admin_role')json=roleMode==='ordinary'?'user':'super_admin'
@@ -71,6 +72,7 @@ await page.evaluate(({userId})=>{
 },{userId})
 await page.goto('http://localhost:5173/dashboard')
 await page.getByRole('heading',{name:/Hey, Test Member/}).waitFor()
+await page.getByRole('link',{name:'Find my 5,000 DC launch reward'}).waitFor()
 await assertBrand();await page.screenshot({path:'/home/user/member-desktop-test.png',fullPage:true})
 await page.goto('http://localhost:5173/referrals')
 await page.getByRole('heading',{name:'Grow together.'}).waitFor()
@@ -82,7 +84,7 @@ const modal=page.getByRole('dialog');await modal.waitFor();assert.equal(await mo
 await modal.getByRole('button',{name:'Cancel',exact:true}).click();await modal.waitFor({state:'detached'})
 await page.goto('http://localhost:5173/discover');await page.getByRole('heading',{name:'Explore the community.'}).waitFor();await page.getByRole('button',{name:'Instagram',exact:true}).click();assert.equal(await page.getByRole('button',{name:'Instagram',exact:true}).getAttribute('aria-pressed'),'true')
 await page.goto('http://localhost:5173/settings');await page.getByRole('heading',{name:'Make it yours.'}).waitFor();await page.getByLabel('Display name',{exact:true}).waitFor();await page.waitForFunction(()=>document.querySelector('input[pattern="[a-z0-9_]{3,24}"]')?.value==='test_member');assert.equal(await page.getByLabel('Display name',{exact:true}).inputValue(),'Test Member')
-await page.goto('http://localhost:5173/rewards');await page.getByRole('heading',{name:'Missions & challenges.'}).waitFor();await page.goto('http://localhost:5173/credits');await page.getByRole('heading',{name:'Buy Credits by bank transfer'}).waitFor()
+await page.goto('http://localhost:5173/rewards');await page.getByRole('heading',{name:'Growth Credits & rewards.'}).waitFor();await page.getByRole('heading',{name:'Start your growth with 5,000 DC.'}).waitFor();await page.getByRole('button',{name:'Check & receive 5,000 DC if eligible'}).waitFor();await page.goto('http://localhost:5173/notifications');await page.getByRole('heading',{name:'Start your growth with 5,000 DC.'}).waitFor();await page.goto('http://localhost:5173/credits');await page.getByRole('heading',{name:'Buy Credits by bank transfer'}).waitFor()
 await page.goto('http://localhost:5173/admin?view=boost_plans');await page.getByRole('button',{name:'+ Create booster'}).click();await page.getByRole('dialog').getByRole('heading',{name:'Create booster plan'}).waitFor();await page.getByRole('dialog').getByRole('button',{name:'Cancel',exact:true}).click()
 await page.goto('http://localhost:5173/admin?view=site_settings');await page.getByRole('button',{name:'Inspect →'}).click();await page.getByRole('button',{name:'Edit site settings',exact:true}).click();await page.getByRole('dialog').getByRole('heading',{name:'Edit site settings'}).waitFor();await page.getByRole('dialog').getByRole('button',{name:'Cancel',exact:true}).click()
 await page.setViewportSize({width:390,height:844});await page.goto('http://localhost:5173/dashboard');await page.getByRole('heading',{name:/Hey, Test Member/}).waitFor();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false)
