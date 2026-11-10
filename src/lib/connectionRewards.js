@@ -1,7 +1,7 @@
 // Display server decisions only. This module never calculates or credits a balance.
 export function relationshipMessage(result){
  if(result?.action==='connect'&&result.enabled){
-  if(result.reward_dc===7&&result.reward_status==='granted')return 'Connected! +7 reward DC added to your wallet. Reward DC cannot pay listing fees.'
+  if(result.reward_dc===7&&result.reward_status==='granted')return 'Connected! +7 reward DC added to your wallet. Connection reward DC cannot pay listing fees.'
   if(result.reward_status==='daily_cap')return 'Connected for free. You reached today’s 50 rewarded connections (350 DC). Rewards reset at midnight UTC; this pair will not earn a later reward.'
   if(result.reward_status==='already_processed')return 'Connected for free. This pair was already processed; reconnecting does not earn another reward.'
   if(result.reward_status==='paused')return 'Connected for free. Connection rewards are temporarily paused.'
