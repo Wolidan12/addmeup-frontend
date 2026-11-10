@@ -16,7 +16,8 @@ const messages = {
   user_banned: "This account is unavailable. Please contact support.",
 };
 const business = [
-  [/Not enough purchased DC/i, 'You need more purchased DC for this listing. Reward DC cannot pay for feed time.'],
+  [/Not enough listing DC/i, 'You need more eligible listing DC. Use purchased DC or your unspent launch reward, or choose a shorter duration.'],
+  [/Not enough purchased DC/i, 'This listing payment could not use your reward balance. Refresh listing status before paying again.'],
   [/Listing package changed/i, 'This listing package changed. Refresh the packages and confirm the new price and duration.'],
   [/Listing needs a public profile/i, 'Save your display name, allow public profile visibility, and add a public social link before buying a listing.'],
   [/Feed listing purchases are paused/i, 'New feed listing purchases are currently paused. Your existing booked time is unchanged.'],

@@ -19,7 +19,7 @@ const settings=await readFile('src/pages/Settings.jsx','utf8'),guide=await readF
 for(const text of ['Optional details & username','Short bio (optional)','baseline.current','profileUpdate(form','inFlight.current','Saving does not buy feed time or deduct DC','Account progress & rewards (optional)'])assert.ok(settings.includes(text),text)
 assert.ok(!settings.includes('ExperienceBanner'))
 assert.ok(guide.includes('country, interests and other extras are tucked'))
-assert.ok(guide.includes('reward DC does not qualify'))
+assert.ok(guide.includes('purchased DC or your unspent launch reward'))
 assert.ok(listing.includes("supabase.rpc('my_feed_listing'"))
 assert.ok(listing.includes("supabase.rpc('buy_feed_listing'"));assert.ok(listing.includes('persistListingRequest'))
 console.log('PASS simple profile: basic allowlisted edits, signup username reuse, unchanged optional values omitted, explicit optional edits/clears retained, validation and role/balance protections, no fake listing purchase or free paid-feed claim.')

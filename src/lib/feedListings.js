@@ -15,7 +15,20 @@ export function listingPayload(pkg,request){
 }
 export function validateFeedState(value,user){
  if(!value||!Number.isSafeInteger(value.purchased_dc)||value.purchased_dc<0||!Number.isSafeInteger(value.total_dc)||value.purchased_dc>Math.max(0,value.total_dc)||!Array.isArray(value.packages)||!Array.isArray(value.rows)||!Number.isSafeInteger(value.total)||value.total<0||!Number.isFinite(Date.parse(value.server_now))||typeof value.enabled!=='boolean'||typeof value.profile_ready!=='boolean'||typeof value.in_feed!=='boolean'||(value.active_until!==null&&!Number.isFinite(Date.parse(value.active_until))))throw new Error('Unavailable feed listing state')
+ if(value.funding_policy!==undefined&&(value.funding_policy!=='purchased_or_launch_reward_v1'||!Number.isSafeInteger(value.listing_dc)||value.listing_dc<value.purchased_dc||value.listing_dc>Math.max(0,value.total_dc)||!Number.isSafeInteger(value.launch_reward_dc)||value.launch_reward_dc!==value.listing_dc-value.purchased_dc))throw new Error('Invalid listing funding state')
  value.packages.forEach(p=>listingPayload(p,'00000000-0000-4000-8000-000000000001'))
  if(value.rows.some(r=>r.user_id!==user||!uuid.test(r.id)||!Number.isFinite(Date.parse(r.starts_at))||!Number.isFinite(Date.parse(r.ends_at))||!['active','queued','expired'].includes(r.status)))throw new Error('Invalid listing history')
  return value
+}
+
+// Older deployments stay purchased-only; never infer eligible rewards from the total wallet.
+export const listingBalance=state=>state?.funding_policy==='purchased_or_launch_reward_v1'?state.listing_dc:(state?.purchased_dc||0)
+
+export async function verifyListingVisibility(client,username,user){
+ if(typeof username!=='string'||!username)throw new Error('Listing handle unavailable')
+ const [feed,profile]=await Promise.all([
+  client.rpc('public_directory',{p_search:'@'+username,p_page:0}),
+  client.rpc('discovery_profile',{p_username:username,p_managed:false})
+ ])
+ if(feed.error||profile.error||!feed.data?.rows?.some(p=>p.id===user&&p.managed!==true)||profile.data?.id!==user||profile.data?.managed===true)throw new Error('Public listing not confirmed')
 }
