@@ -8,6 +8,7 @@ page.setDefaultTimeout(12000)
 const id='b0000000-0000-0000-0000-000000000001',target='b0000000-0000-0000-0000-000000000002',order='d0000000-0000-0000-0000-000000000001',errors=[],calls=[]
 const profile={id,username:'test_member',display_name:'Test member',bio:'A genuine community',country:'NG',interests:[],is_public:true,avatar_url:null}
 const creator={...profile,id:target,username:'listed_creator',display_name:'Listed creator',managed:false,is_connected:false,is_saved:false,feed_listing_paid:true,feed_ends_at:new Date(Date.now()+86400000).toISOString(),social_links:[{id:'link',platform:'instagram',url:'https://instagram.com/creator',is_public:true}]}
+const publicSocialLink={id:'member-whatsapp-link',profile_id:target,platform:'whatsapp',url:'https://wa.me/1234567890',is_public:true}
 const site={id:true,brand_name:'Danqel Social Boost',hero_title:'Good connections. Greater reach.',hero_description:'Meet the community.',enabled_platforms:['instagram','whatsapp'],maintenance_mode:false}
 const user={id,email:'fixture@example.org',aud:'authenticated',role:'authenticated',email_confirmed_at:new Date().toISOString(),app_metadata:{provider:'email'},user_metadata:{}}
 const exp=Math.floor(Date.now()/1000)+3600,jwt=Buffer.from(JSON.stringify({alg:'HS256'})).toString('base64url')+'.'+Buffer.from(JSON.stringify({sub:id,role:'authenticated',aud:'authenticated',exp})).toString('base64url')+'.fixture'
@@ -32,6 +33,8 @@ await ctx.route('https://test.supabase.co/**',async route=>{
   json={rows:[{...creator,email:'creator@example.org',email_confirmed:true,suspended:false,staff_role:'user'}],total:1}
  }
  if(name==='admin_user_detail'){await route.fulfill({status:detailMode==='missing'?404:403,json:{code:detailMode==='missing'?'PGRST202':'42501',message:'PRIVATE_INTERNAL_SENTINEL'}});return}
+ if(name==='social_links')json=[publicSocialLink]
+ if(name==='admin_update_member_social_link'){const body=route.request().postDataJSON();calls.push(body);publicSocialLink.url=body.p_url;json=null}
 
  if(name==='public_directory')json={feed_policy:'purchased_dc_v1',server_now:new Date().toISOString(),total:1,rows:[creator],paid_rows:[]}
  if(name==='discovery_profile')json=creator
@@ -66,7 +69,9 @@ try{
  await page.waitForTimeout(600);assert.equal(directoryCalls.at(-1).p_search,'creator@example.org');assert.equal(directoryCalls.at(-1).p_status,'verified')
  await page.reload();await page.getByRole('button',{name:'Open user',exact:true}).waitFor();assert.match(page.url(),/q=creator/);assert.equal(await page.getByLabel('Filter records',{exact:true}).inputValue(),'verified')
  await page.getByRole('button',{name:'Open user',exact:true}).click();let dlg=page.getByRole('dialog');await dlg.getByText('Showing the protected user-list record.',{exact:false}).waitFor();assert.match(await dlg.innerText(),/Listed creator/)
- await dlg.getByText('Manage this user',{exact:true}).click();await dlg.getByRole('button',{name:'Edit profile details',exact:true}).click();dlg=page.getByRole('dialog');await dlg.getByRole('heading',{name:'Edit user profile',exact:true}).waitFor();await dlg.getByRole('button',{name:'Cancel',exact:true}).click()
+ await dlg.getByRole('button',{name:'social',exact:true}).click();await dlg.getByRole('heading',{name:'WhatsApp',exact:true}).waitFor();await dlg.getByRole('button',{name:'Correct public link',exact:true}).click()
+ let editor=dlg.getByRole('form',{name:'Correct public WhatsApp link'});await editor.getByLabel('New WhatsApp number or wa.me link').fill('+234 800 123 4567');await editor.getByLabel('Reason for correction').fill('Member asked us to correct a typo and verified the new number.');await editor.getByRole('checkbox',{name:/I confirm the member requested this correction/}).check();await editor.getByRole('button',{name:'Save verified correction'}).click();await dlg.getByText('WhatsApp link corrected. The public profile now uses the updated link.').waitFor();assert.equal(publicSocialLink.url,'https://wa.me/2348001234567');assert.equal(calls.at(-1).p_member_confirmed,true);assert.match(calls.at(-1).p_reason,/Member asked us/);assert.ok(calls.at(-1).p_request)
+ await dlg.getByRole('button',{name:'profile',exact:true}).click();await dlg.getByText('Manage this user',{exact:true}).click();await dlg.getByRole('button',{name:'Edit profile details',exact:true}).click();dlg=page.getByRole('dialog');await dlg.getByRole('heading',{name:'Edit user profile',exact:true}).waitFor();await dlg.getByRole('button',{name:'Cancel',exact:true}).click()
  await daily.getByRole('button',{name:'Deposits',exact:true}).click();await page.getByRole('button',{name:'Approve',exact:true}).waitFor();assert.match(page.url(),/status=submitted/)
  assert.equal(await page.locator('.admin-bank-summary').getAttribute('open'),null)
  let bounds=await page.getByRole('button',{name:'Approve',exact:true}).boundingBox();assert.ok(bounds.y+bounds.height<844,'Review action is above the fold on a phone')
