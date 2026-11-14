@@ -31,6 +31,7 @@ const query=async(sql,args=[])=>(await db.query(sql,args)).rows
 const legacy='a4000000-0000-4000-8000-000000000004';await signup(legacy,{},'legacy@example.org');assert.equal((await query('select count(*)::int n from public.account_consents where user_id=$1',[legacy]))[0].n,0);
 assert.equal((await query('select username from public.profiles where id=$1',[user]))[0].username,'jane_creator')
 assert.equal((await query('select is_public from public.profiles where id=$1',[user]))[0].is_public,false)
+assert.equal((await query('select public.launch_profile_complete($1) eligible',[user]))[0].eligible,false,'Signup stores name and username only; the launch reward needs the remaining profile fields too')
 assert.equal((await query('select count(*)::int n from public.account_consents where user_id=$1',[user]))[0].n,1)
 assert.equal((await query('select count(*)::int n from public.user_roles where user_id=$1',[user]))[0].n,0)
 await assert.rejects(signup(other,registrationDetails(registration).metadata,'other@example.org'),/unique constraint/)

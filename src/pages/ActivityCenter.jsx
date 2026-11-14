@@ -32,7 +32,7 @@ export default function ActivityCenter({ rankings = false }) {
             : "Account updates, moderation messages and payment decisions, together in your private inbox."
         }
       />
-      {!rankings && <LaunchPromotion compact onAward={refresh} />}
+      {!rankings && <LaunchPromotion compact profile={data?.profile} onAward={refresh} />}
       {rankings ? (
         <>
           <section className="member-stats member-referral-stats">
