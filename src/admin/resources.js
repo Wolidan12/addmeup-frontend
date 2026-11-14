@@ -50,7 +50,7 @@ export function rowActions(resource,row,role){
  if(resource==='site_settings'&&root)actions.push({action:'edit_site',label:'Edit site settings'})
  if(resource==='bank_transfer_details'&&root)actions.push({action:'edit_bank',label:'Change bank details'})
  if(resource==='profiles'&&root)actions.push({action:'edit_profile',label:'Edit profile details'})
- if(resource==='profiles'&&root&&!row.is_self&&(!row.staff_role||row.staff_role==='user'))actions.push({action:'member_feed_listing',label:'List member profile in feed'})
+ if(resource==='profiles'&&root&&!row.is_self&&(!row.staff_role||row.staff_role==='user'))actions.push({action:'member_feed_listing',label:'List free in community'})
  if(resource==='point_packages'&&root)actions.push({action:'edit_package',label:'Edit package'})
  if(resource==='managed_profiles'&&root)actions.push({action:'edit_listing',label:'Edit listing'})
  if(resource==='bank_point_orders'&&(root||role==='finance_admin')&&row.status==='submitted'&&!row.is_self)actions.push({action:'approve_bank',label:'Approve'},{action:'reject_bank',label:'Decline'})
@@ -65,6 +65,12 @@ export function rowActions(resource,row,role){
  if(resource==='user_roles'&&root&&!row.is_self)actions.push({action:'set_role',label:'Assign role'})
  if(resource==='bank_point_orders'&&(root||role==='finance_admin')&&row.status==='approved'&&row.refunds_supported!==false)actions.push({action:'refund_bank',label:'Record confirmed external refund'})
  return actions
+}
+const cardQuickActionNames=new Set(['edit_profile','member_feed_listing','support_ticket','edit_listing'])
+export function cardQuickActions(resource,row,role,actorId){
+ const targetId=row?.id||row?.user_id
+ const safeRow=resource==='profiles'?{...row,is_self:typeof row?.is_self==='boolean'?row.is_self:!actorId||targetId===actorId}:row
+ return rowActions(resource,safeRow,role).filter(action=>cardQuickActionNames.has(action.action))
 }
 export const formatLabel=s=>({points:'DC amount',balance:'DC balance',cost_points:'Cost (DC)',cost_dc:'Cost (DC)',reward_dc:'Reward (DC)',amount_dc:'Award (DC)',reward_xp:'Creator XP reward',credit_amount:'DC change',previous_balance:'Previous DC balance',new_balance:'New DC balance'}[s]||String(s??'—').replaceAll('_',' '))
 export function csv(rows,columns){

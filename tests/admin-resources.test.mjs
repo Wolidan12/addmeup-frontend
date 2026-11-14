@@ -2,7 +2,7 @@ import {validSocialUrl} from '../src/lib/validation.js'
 import {readFile} from 'node:fs/promises'
 import {validateImage,MAX_IMAGE_BYTES} from '../src/lib/imageValidation.js'
 import assert from 'node:assert/strict'
-import {resources,canView,rowActions,csv} from '../src/admin/resources.js'
+import {resources,canView,rowActions,cardQuickActions,csv} from '../src/admin/resources.js'
 assert.equal(canView('finance_admin',resources.find(r=>r.key==='profiles')),false) // Match the inspected server's existing scope; billing remains in deposits/wallets.
 assert.equal(rowActions('profiles',{},'finance_admin').length,0)
 assert.equal(canView('support_agent',resources.find(r=>r.key==='payment_transactions')),false)
@@ -10,6 +10,14 @@ assert.equal(rowActions('profiles',{},'support_agent').some(a=>a.action==='restr
 assert.equal(rowActions('profiles',{},'super_admin').some(a=>a.action==='adjust_points'),true)
 assert.equal(rowActions('profiles',{id:'member',staff_role:'user'},'super_admin').some(a=>a.action==='member_feed_listing'),true)
 assert.equal(rowActions('profiles',{id:'self',is_self:true},'super_admin').some(a=>a.action==='member_feed_listing'),false)
+const memberCardActions=cardQuickActions('profiles',{id:'member',staff_role:'user'},'super_admin','staff')
+assert.deepEqual(memberCardActions.map(a=>a.action),['edit_profile','member_feed_listing'])
+assert.equal(memberCardActions[1].label,'List free in community')
+assert.equal(cardQuickActions('profiles',{id:'self',staff_role:'user'},'super_admin','self').some(a=>a.action==='member_feed_listing'),false)
+assert.equal(cardQuickActions('profiles',{id:'member',staff_role:'user'},'super_admin').some(a=>a.action==='member_feed_listing'),false,'Fail closed when card actor identity is unavailable')
+const workflow=await readFile('src/admin/AdminWorkflow.jsx','utf8')
+assert.match(workflow,/cardQuickActions\(resource\.key,row,role,actorId\)/)
+assert.match(workflow,/quickActions\.map\(/)
 for(const staff_role of ['super_admin','moderator','finance_admin','support_agent'])assert.equal(rowActions('profiles',{id:'staff',staff_role},'super_admin').some(a=>a.action==='member_feed_listing'),false,staff_role)
 assert.equal(rowActions('profiles',{id:'member'},'moderator').some(a=>a.action==='member_feed_listing'),false)
 assert.equal(rowActions('payment_transactions',{status:'verified',provider:'paystack'},'finance_admin').length,0)

@@ -16,7 +16,9 @@ try{await exercise()}finally{await db.close();if(cluster)await cluster.stop()}
 async function exercise(){
  const bootstrap=(await readFile('tests/admin-database.test.mjs','utf8')).match(/await db\.exec\(`([\s\S]*?)`\)/)[1]
  await db.exec(bootstrap);await db.exec("alter table auth.users add column email_confirmed_at timestamptz,add column last_sign_in_at timestamptz,add column banned_until timestamptz,add column created_at timestamptz default now(),add column raw_user_meta_data jsonb default '{}'::jsonb;alter default privileges in schema public grant all on tables to anon,authenticated")
- for(const f of (await readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')).sort())await db.exec((await readFile('supabase/migrations/'+f,'utf8')).replace('create extension if not exists pgcrypto;',''))
+ // Migration 026 requires the separately installed free managed-feed baseline;
+ // its guarded post-install path is exercised in free-admin-managed-feed.test.mjs.
+ for(const f of (await readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')&&f!=='026_managed_profile_completion.sql').sort())await db.exec((await readFile('supabase/migrations/'+f,'utf8')).replace('create extension if not exists pgcrypto;',''))
  const one=async(sql,args=[])=>(await db.query(sql,args)).rows[0]
  const root=crypto.randomUUID(),user=crypto.randomUUID(),other=crypto.randomUUID()
  async function as(id){await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[id||'']);await db.exec('set role '+(id?'authenticated':'anon'))}

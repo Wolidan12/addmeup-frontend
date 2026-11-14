@@ -12,6 +12,31 @@ create function pg_temp.managed_feed_snapshot() returns jsonb language sql stabl
 $$;
 create temp table managed_feed_preservation on commit drop as select pg_temp.managed_feed_snapshot() snapshot;
 
+-- Match the existing Profile complete badge. A public managed listing is complete
+-- only when its saved name, username, portrait, bio, country and interests are present.
+-- The function returns no identity, email or KYC decision.
+create or replace function public.managed_profile_completion_fields(p_data jsonb) returns boolean
+language sql immutable set search_path=public as $$
+ select case
+  when p_data is null or jsonb_typeof(p_data)<>'object'
+    or jsonb_typeof(p_data->'interests')<>'array' then false
+  else coalesce(
+    length(trim(p_data->>'display_name'))>=2
+    and trim(p_data->>'display_name')<>'New creator'
+    and p_data->>'username' ~ '^[a-z0-9_]{3,24}$'
+    and length(trim(p_data->>'avatar_url'))>0
+    and length(trim(p_data->>'bio'))>0
+    and length(trim(p_data->>'country'))>0
+    and exists(select 1 from jsonb_array_elements_text(p_data->'interests') as interest(value)
+      where length(trim(value))>0),false)
+ end
+$$;
+revoke all on function public.managed_profile_completion_fields(jsonb) from public,anon,authenticated,service_role;
+alter table public.managed_profiles add constraint managed_profiles_public_completion_check
+ check(not is_public or public.managed_profile_completion_fields(jsonb_build_object(
+  'display_name',display_name,'username',username,'avatar_url',avatar_url,
+  'bio',bio,'country',country,'interests',to_jsonb(interests)))) not valid;
+
 create or replace function public.admin_save_managed_profile(p_id uuid,p_data jsonb,p_reason text) returns uuid language plpgsql security definer set search_path=public as $$begin
  perform public.require_active_account();
  if public.admin_role() is distinct from 'super_admin' then raise exception 'Permission denied' using errcode='42501';end if;
@@ -30,6 +55,7 @@ end$$;
 create function public.managed_feed_item(p_id uuid) returns jsonb language sql stable security definer set search_path=public as $$
  select jsonb_build_object('id',m.id,'username',m.username,'display_name',m.display_name,'bio',m.bio,'country',m.country,'interests',m.interests,'avatar_url',m.avatar_url,'created_at',m.created_at,'managed',true,'listing_source','admin_managed','feed_listing_paid',false,'social_links',coalesce((select jsonb_agg(l) from jsonb_array_elements(m.social_links) l where l->'is_public'='true'::jsonb and l->>'platform'=any((select enabled_platforms from public.site_settings where id)::text[]) and length(l->>'url')<=500 and l->>'url' ~ '^https://[^/@:#?]+/[^[:space:]<>]+$' and l->>'url' !~ '[[:space:]<>\\]' and exists(select 1 from public.social_platforms c,unnest(c.hosts) h where c.key=l->>'platform' and (lower(split_part(split_part(l->>'url','://',2),'/',1))=h or lower(split_part(split_part(l->>'url','://',2),'/',1))='www.'||h))),'[]'::jsonb))
  from public.managed_profiles m where m.id=p_id and m.is_public and m.username ~ '^[a-z0-9_]{3,24}$' and length(trim(m.display_name)) between 1 and 60
+  and public.managed_profile_completion_fields(jsonb_build_object('display_name',m.display_name,'username',m.username,'avatar_url',m.avatar_url,'bio',m.bio,'country',m.country,'interests',to_jsonb(m.interests)))
 $$;
 revoke all on function public.managed_feed_item(uuid) from public,anon,authenticated,service_role;
 
