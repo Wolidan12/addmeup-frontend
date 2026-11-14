@@ -595,10 +595,6 @@ html[data-theme="light"] .notification-inbox li{border-top:1px solid #a8bedbbb}
 html[data-theme="light"] .notification-inbox time,html[data-theme="light"] .notification-inbox a{color:#2056a0}
 html[data-theme="light"] .release-notes-page p,html[data-theme="light"] .release-notes-page time{color:#102d54}
 html[data-theme="light"] .profile-complete-badge svg{fill:var(--amu-accent, #a51e35);stroke:#102d54}
-html[data-theme="light"] .profile-complete-badge-labeled{border:1px solid var(--amu-accent-line, #a8bedbbb);background:var(--amu-accent-soft, #edf4ff18);color:var(--amu-accent-text, #2056a0)}
-html[data-theme="light"] .profile-complete-badge-labeled svg{fill:var(--amu-accent, #a51e35);stroke:#102d54}
-html[data-theme="light"][data-theme="light"] .profile-complete-badge-labeled{color:var(--amu-accent-text, #a51e35);background:var(--amu-accent-soft, #edf4ff14);border-color:var(--amu-accent-line, #a8bedbbb)}
-html[data-theme="light"][data-theme="light"] .profile-complete-badge-labeled svg{fill:var(--amu-accent-strong, #a51e35);stroke:#102d54}
 :root[data-theme="light"]{--ds-bg:#ffffff;--ds-raised:#ffffff;--ds-panel:#ffffff;--ds-line:#a8bedb;--ds-text:#102d54;--ds-muted:#2056a0;--ds-violet:#2056a0;--ds-blue:#2056a0;--ds-gradient:linear-gradient(115deg, #2056a0, #2056a0)}
 html[data-theme="light"] input,html[data-theme="light"] 
 textarea,html[data-theme="light"] 

@@ -4,8 +4,9 @@ import { Gift, ShieldCheck } from 'lucide-react'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { withTimeout, publicError } from '../lib/errors'
+import { missingProfileRequirements } from '../lib/profileBadge'
 
-export default function LaunchPromotion({ compact = false, onAward }) {
+export default function LaunchPromotion({ compact = false, onAward, profile }) {
   const { user } = useAuth()
   const [status, setStatus] = useState(null)
   const [error, setError] = useState('')
@@ -65,6 +66,7 @@ export default function LaunchPromotion({ compact = false, onAward }) {
   }
 
   const slots = status?.remaining_slots
+  const missingProfile = missingProfileRequirements(profile)
   const title = status?.status === 'completed'
     ? 'Launch rewards fully awarded.'
     : status?.status === 'paused'
@@ -95,7 +97,7 @@ export default function LaunchPromotion({ compact = false, onAward }) {
         </p>
       ) : user ? (
         <div className="launch-actions">
-          <Link to="/settings">{status?.eligibility.profile_complete ? 'Review my profile →' : 'Complete my profile →'}</Link>
+          <Link to={status?.eligibility.profile_complete ? '/settings' : '/settings?launch=1'}>{status?.eligibility.profile_complete ? 'Review my profile →' : 'Complete my profile →'}</Link>
           <button
             type="button"
             aria-busy={busy}
@@ -112,9 +114,20 @@ export default function LaunchPromotion({ compact = false, onAward }) {
       )}
 
       {user && status && !status.award && (
-        <p className="launch-requirements">
-          Email: {status.eligibility.verified ? 'verified' : 'verification required'} · Profile: {status.eligibility.profile_complete ? 'complete' : 'incomplete'}. Eligible awards are credited automatically when requirements are met; this button safely rechecks your eligibility and the remaining capacity.
-        </p>
+        <>
+          <p className="launch-requirements">
+            Email: {status.eligibility.verified ? 'verified' : 'verification required'} · Profile: {status.eligibility.profile_complete ? 'complete' : 'incomplete'}. Eligible awards are credited automatically when requirements are met; this button safely rechecks your eligibility and the remaining capacity.
+          </p>
+          {!status.eligibility.profile_complete && (
+            <p className="launch-requirements" role="status">
+              {profile
+                ? missingProfile.length
+                  ? `Still needed for the launch reward: ${missingProfile.join(', ')}.`
+                  : 'Your saved profile looks complete, but the campaign has not confirmed it yet. Refresh your profile status before retrying.'
+                : 'Open your profile to review the required fields and add any missing details.'}
+            </p>
+          )}
+        </>
       )}
       {error && <p role="alert">{error} <button type="button" onClick={() => setVersion(v => v + 1)}>Retry status</button></p>}
       <small>DC are virtual platform credits, not cash or withdrawable money. Eligibility and remaining capacity are checked transactionally.</small>

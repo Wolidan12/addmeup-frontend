@@ -16,7 +16,7 @@ assert.equal(profileUpdate({...baseline,bio:'',country:'',interests:[]},{...base
 assert.throws(()=>profileUpdate({...baseline,display_name:''},baseline),/display name/)
 assert.throws(()=>profileUpdate({...baseline,username:'invalid name'},baseline),/username/)
 const settings=await readFile('src/pages/Settings.jsx','utf8'),guide=await readFile('src/pages/HowItWorks.jsx','utf8'),listing=await readFile('src/components/FeedListingInfo.jsx','utf8')
-for(const text of ['Optional details & username','Short bio (optional)','baseline.current','profileUpdate(form','inFlight.current','Saving does not buy feed time or deduct DC','Account progress & rewards (optional)'])assert.ok(settings.includes(text),text)
+for(const text of ['Country, interests & username','Short bio (needed for launch reward)','launchFocus','Country (needed for launch reward)','Add at least one interest for the launch reward.','baseline.current','profileUpdate(form','inFlight.current','Saving does not buy feed time or deduct DC','Account progress & rewards (optional)'])assert.ok(settings.includes(text),text)
 assert.ok(!settings.includes('ExperienceBanner'))
 assert.ok(guide.includes('country, interests and other extras are tucked'))
 assert.ok(guide.includes('purchased DC or your unspent launch reward'))

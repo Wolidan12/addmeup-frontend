@@ -4,7 +4,7 @@ import WorkspaceNav from "../components/WorkspaceNav";
 import { InputError, publicError, withTimeout } from "../lib/errors";
 import { profileUpdate, profileCompletion } from "../lib/accountValidation";
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { ArrowUpRight, UserRound, Link2, Trash2 } from "lucide-react";
 import ProfilePhoto from "../components/ProfilePhoto";
 import NotificationInbox from "../components/NotificationInbox";
@@ -28,7 +28,9 @@ const initial = {
 export default function Settings() {
   const { user } = useAuth(),
     site = useSite(),
-    { data, refresh } = useMember();
+    location = useLocation(),
+    { data, refresh } = useMember(),
+    launchFocus = new URLSearchParams(location.search).get("launch") === "1";
   const [form, setForm] = useState(initial),
     [links, setLinks] = useState([]),
     [platform, setPlatform] = useState(site.enabled_platforms[0] || ""),
@@ -241,7 +243,7 @@ export default function Settings() {
           <div>
             <h2>1. Your profile</h2>
             <p>
-              Start with the basics. Your username is reused from signup; extra details are optional.
+              Your name and username are already on your profile. For the first-50 5,000 DC launch reward, also add a photo, bio, country and at least one interest. Confirmed email is required too; a social link is not.
             </p>
           </div>
           <UserRound size={20} />
@@ -250,6 +252,7 @@ export default function Settings() {
           <fieldset className="simple-profile-fields" disabled={busy || !data || data.restricted}>
           <label>
             Display name
+            <small>At least 2 characters for the launch reward.</small>
             <input
               required
               minLength={1}
@@ -261,7 +264,7 @@ export default function Settings() {
             />
           </label>
           <label className="member-full-width">
-            Short bio (optional)
+            Short bio (needed for launch reward)
             <textarea
               aria-label="Bio"
               maxLength={280}
@@ -272,9 +275,9 @@ export default function Settings() {
             />
           </label>
           <p className="simple-profile-username">Your profile address: <strong>@{form.username || 'your_username'}</strong></p>
-          <details className="simple-profile-extras member-full-width">
-            <summary>Optional details & username</summary>
-            <p>Keep your existing username, or change it here. Country, location, interests and categories are optional and are not a payment requirement.</p>
+          <details className="simple-profile-extras member-full-width" open={launchFocus}>
+            <summary>Country, interests & username</summary>
+            <p>For the first-50 launch reward, set a country and add at least one interest; your username must be at least 3 characters. Location and categories remain optional. No social account is required.</p>
             <div className="member-settings-form">
           <label>
             Username
@@ -293,7 +296,7 @@ export default function Settings() {
             />
           </label>
           <label>
-            Country
+            Country (needed for launch reward)
             <input
               maxLength={80}
               value={form.country || ""}
@@ -314,6 +317,7 @@ export default function Settings() {
           </label>
           <label>
             Interests (comma separated)
+            <small>Add at least one interest for the launch reward.</small>
             <input
               value={form.interests}
               maxLength={409}
