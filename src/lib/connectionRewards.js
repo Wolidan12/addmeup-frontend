@@ -5,6 +5,7 @@ export function relationshipMessage(result){
   if(result.reward_status==='daily_cap')return 'Connected for free. You reached today’s 50 rewarded connections (350 DC). Rewards reset at midnight UTC; this pair will not earn a later reward.'
   if(result.reward_status==='already_processed')return 'Connected for free. This pair was already processed; reconnecting does not earn another reward.'
   if(result.reward_status==='paused')return 'Connected for free. Connection rewards are temporarily paused.'
+  if(result.reward_status==='not_eligible')return 'Connected for free. Complimentary listings do not qualify for connection rewards; connection reward DC cannot pay listing fees.'
   return 'Connected for free. No new reward was confirmed.'
  }
  if(result?.action==='connect')return 'Disconnected. Previous rewards are unchanged; reconnecting does not earn another reward.'

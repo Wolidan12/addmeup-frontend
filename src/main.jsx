@@ -15,3 +15,4 @@ import "./design/premium.css";
 import "./admin/workflow.css";
 import "./design/light.generated.css";
 import "./design/theme.css";
+import "./design/readability.css";

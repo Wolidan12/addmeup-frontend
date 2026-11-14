@@ -50,6 +50,7 @@ export function rowActions(resource,row,role){
  if(resource==='site_settings'&&root)actions.push({action:'edit_site',label:'Edit site settings'})
  if(resource==='bank_transfer_details'&&root)actions.push({action:'edit_bank',label:'Change bank details'})
  if(resource==='profiles'&&root)actions.push({action:'edit_profile',label:'Edit profile details'})
+ if(resource==='profiles'&&root&&!row.is_self&&(!row.staff_role||row.staff_role==='user'))actions.push({action:'member_feed_listing',label:'List member profile in feed'})
  if(resource==='point_packages'&&root)actions.push({action:'edit_package',label:'Edit package'})
  if(resource==='managed_profiles'&&root)actions.push({action:'edit_listing',label:'Edit listing'})
  if(resource==='bank_point_orders'&&(root||role==='finance_admin')&&row.status==='submitted'&&!row.is_self)actions.push({action:'approve_bank',label:'Approve'},{action:'reject_bank',label:'Decline'})

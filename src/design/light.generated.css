@@ -164,6 +164,11 @@ html[data-theme="light"] .ad-managed-tags>span{border:1px solid #a8bedb;color:#2
 html[data-theme="light"] .ad-managed-body footer{border-top:1px solid #a8bedb}
 html[data-theme="light"] .ad-managed-body footer>span{color:#2056a0}
 html[data-theme="light"] .ad-managed-body footer button{color:#102d54;background:#edf4ff}
+html[data-theme="light"] .member-feed-status > div{border:1px solid #a8bedb;background:#ffffff}
+html[data-theme="light"] .member-feed-status dt{color:#2056a0}
+html[data-theme="light"] .member-feed-status dd{color:#102d54}
+html[data-theme="light"] .member-feed-mode button[aria-pressed="true"]{border-color:#a8bedb;background:#edf4ff;color:#102d54}
+html[data-theme="light"] .member-feed-confirm{color:#102d54!important}
 html[data-theme="light"] .bank-review header p{color:#102d54}
 html[data-theme="light"] .bank-review-facts{background:#e3efff06;border:1px solid #a8bedbbb}
 html[data-theme="light"] .bank-review-facts dt{color:#102d54}
@@ -979,10 +984,11 @@ html[data-theme="light"] .feed-order-history span,html[data-theme="light"] .feed
 html[data-theme="light"] .feed-buy-dialog p{color:#102d54}
 html[data-theme="light"] .listing-guide{border:1px solid #a8bedbbb;background:linear-gradient(125deg,#edf4ff1a,transparent)}
 html[data-theme="light"] .listing-guide-state{border:1px solid #a8bedbbb}
-html[data-theme="light"] .listing-guide-steps button{border:1px solid #a8bedbbb}
-html[data-theme="light"] .listing-guide-steps button[aria-current=step]{background:#edf4ff;color:#102d54;border-color:#a8bedb}
 html[data-theme="light"] .listing-guide-copy button,html[data-theme="light"] .listing-guide-controls button{border:1px solid #a8bedbbb}
 html[data-theme="light"] .listing-guide-note{border-top:1px solid #a8bedbbb}
+html[data-theme="light"] .listing-guide-steps>li{border:1px solid #a8bedbbb}
+html[data-theme="light"] .listing-guide-number{border:1px solid #a8bedbbb}
+html[data-theme="light"] .listing-guide-steps a,html[data-theme="light"] .listing-guide-steps button{border:1px solid #a8bedbbb}
 html[data-theme="light"] .how-guide{color:#102d54}
 html[data-theme="light"] .how-eyebrow{color:#102d54}
 html[data-theme="light"] .how-guide p{color:#102d54}

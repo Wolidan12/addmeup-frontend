@@ -63,7 +63,7 @@ export default function UserInspector({id,role,snapshot,isSelf=false,actions=[],
    <div className="member-pagination"><span>Page {page+1} · {data.total} records</span><button type="button" disabled={!page} onClick={()=>setPage(p=>p-1)}>Previous member records</button><button type="button" disabled={(page+1)*25>=data.total} onClick={()=>setPage(p=>p+1)}>Next member records</button></div>
   </>}
   {data&&!error&&tab==='profile'&&onAction&&<details className="admin-member-actions"><summary>Manage this user</summary><div className="admin-list-actions">{actions.map(a=><button type="button" key={a.action} onClick={()=>onAction({...a,row:snapshot})}>{a.label}</button>)}</div><p>Each action opens its own reasoned confirmation. Nothing changes by opening this menu.</p></details>}
-  <p>Financial corrections, restrictions and role changes use separate reasoned actions. Public social-link corrections require member authorization and are logged; this inspector does not edit balances, XP, profile ownership or feed-listing time.</p>
+  <p>Financial corrections, restrictions and role changes use separate reasoned actions. Public social-link corrections require member authorization and are logged. The complimentary registered-member feed action uses a separate consent-checked audit path; it never edits balances, XP, profile ownership or member-paid listing time.</p>
   <button type="button" className="ad-primary" onClick={onClose}>Close member inspection</button>
  </dialog>
 }
