@@ -81,7 +81,7 @@ export function Footer() {
           <Link to="/discover">Discover creators</Link>
           <Link to="/dashboard">Your workspace</Link>
           <Link to="/referrals">Invite friends</Link>
-          <Link to="/boosts">Point boosters</Link>
+          <Link to="/reward-boosts">Point boosters</Link>
         </nav>
         <nav aria-label="Help and policies">
           <h2>Here for you</h2>

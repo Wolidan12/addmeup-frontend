@@ -1,0 +1,142 @@
+.booster-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.booster-admin-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.booster-banner-note {
+  margin-top: 10px;
+  font-size: 11px !important;
+}
+
+.booster-package-heading {
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.booster-package-heading > div > p {
+  margin-top: 5px;
+  color: var(--m-muted);
+  font-size: 12px;
+}
+
+.booster-empty > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.booster-how {
+  margin-top: 26px;
+  padding: 25px;
+}
+
+.booster-how-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--m-line);
+}
+
+.booster-how-heading h2 {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.booster-how-heading p {
+  margin-top: 5px;
+  color: var(--m-muted);
+  font-size: 12px;
+}
+
+.booster-how-heading > svg {
+  flex: 0 0 auto;
+  color: var(--amu-accent, #d4743a);
+}
+
+.booster-how-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.booster-how-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.booster-how-steps li > span {
+  display: grid;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid var(--amu-accent-line, #d4743a66);
+  border-radius: 9px;
+  background: var(--amu-accent-soft, #d4743a18);
+  color: var(--amu-accent, #d4743a);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.booster-how-steps li strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.booster-how-steps li p {
+  margin-top: 6px;
+  color: var(--m-muted);
+  font-size: 12px;
+  line-height: 1.75;
+}
+
+@media (max-width: 760px) {
+  .booster-heading-actions {
+    gap: 8px;
+  }
+
+  .booster-admin-link {
+    min-height: 44px;
+    padding-inline: 12px;
+    font-size: 11px;
+  }
+
+  .booster-package-heading {
+    align-items: flex-start;
+  }
+
+  .booster-how {
+    padding: 19px 17px;
+  }
+
+  .booster-how-heading h2 {
+    font-size: 17px;
+  }
+
+  .booster-how-heading p,
+  .booster-how-steps li p {
+    font-size: 11px;
+  }
+
+  .booster-how-steps {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}

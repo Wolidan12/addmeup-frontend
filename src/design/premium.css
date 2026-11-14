@@ -4030,10 +4030,44 @@ dialog::backdrop {
 }
 .profile-complete-badge svg {
   display: block;
-  fill: #a855f7;
+  fill: var(--amu-accent, #d4743a);
   stroke: #fff;
   stroke-width: 2;
-  filter: drop-shadow(0 0 5px rgb(168 85 247 / 25%));
+  filter: drop-shadow(0 0 5px rgb(212 116 58 / 25%));
+}
+.profile-complete-badge-labeled {
+  width: auto;
+  min-height: 1.25rem;
+  gap: .25rem;
+  margin-inline-start: .35rem;
+  padding: 2px 7px;
+  border: 1px solid var(--amu-accent-line, #d4743a66);
+  border-radius: 999px;
+  background: var(--amu-accent-soft, #d4743a18);
+  color: var(--amu-accent-text, #f0a06d);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.profile-complete-badge-labeled svg {
+  width: 15px;
+  height: 15px;
+  fill: var(--amu-accent, #d4743a);
+  stroke: #fff;
+  filter: none;
+}
+.profile-complete-badge-text {
+  font-size: .68rem;
+  font-weight: 650;
+  line-height: 1.2;
+}
+html[data-theme="light"] .profile-complete-badge-labeled {
+  color: var(--amu-accent-text, #ad4a17);
+  background: var(--amu-accent-soft, #c9632514);
+  border-color: var(--amu-accent-line, #c9632555);
+}
+html[data-theme="light"] .profile-complete-badge-labeled svg {
+  fill: var(--amu-accent-strong, #b9541b);
+  stroke: #fff;
 }
 @media (forced-colors: active) {
   .profile-complete-badge svg { fill: Highlight; stroke: HighlightText; filter: none; }

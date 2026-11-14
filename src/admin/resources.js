@@ -14,7 +14,7 @@ export const resources = [
  {key:'dc_orders',label:'Premium requests',icon:'✧',group:'Commerce',columns:['user_id','product_title','cost_dc','status','created_at'],search:'Search premium feature',filters:['pending_fulfillment','completed','refunded'],roles:['finance_admin']},
  {key:'site_settings',label:'Site & platforms',icon:'⚙',group:'Operations',columns:['brand_name','hero_title','maintenance_mode','enabled_platforms'],search:'Search site name',roles:[]},
  {key:'bank_transfer_details',label:'Bank configuration',icon:'▣',group:'Commerce',columns:['bank_name','account_name','account_number'],search:'Search bank',roles:[]},
- {key:'boost_plans',label:'Booster plans',icon:'✦',group:'Growth',columns:['title','cost_points','multiplier','duration_hours','bonus_cap','is_active'],search:'Search booster plan',roles:[]},
+ {key:'boost_plans',label:'Points booster packages',icon:'✦',group:'Growth',columns:['title','cost_points','multiplier','duration_hours','bonus_cap','is_active'],search:'Search booster package',roles:[]},
  {key:'user_boosts',label:'Booster activations',icon:'↗',group:'Growth',columns:['user_id','plan_title','cost_points','bonus_used','expires_at'],search:'Search plan title',roles:['finance_admin']},
  {key:'referral_purchase_rewards',label:'Referral awards (gross)',icon:'♧',group:'Growth',columns:['referrer_id','referred_id','points','percent','created_at'],search:'Search referrer UUID',roles:['finance_admin']},
  {key:'managed_profiles',label:'Managed listings',icon:'◈',group:'Community',columns:['username','display_name','country','is_public','created_at'],search:'Search listing username',roles:[]},
@@ -46,7 +46,7 @@ export function rowActions(resource,row,role){
  if(resource==='missions'&&root)actions.push({action:'edit_mission',label:'Configure mission'})
  if(resource==='mission_submissions'&&root&&row.status==='submitted')actions.push({action:'mission_approve',label:'Approve verified mission evidence'},{action:'mission_reject',label:'Reject mission evidence'})
  if(resource==='dc_orders'&&root&&row.status==='pending_fulfillment'&&!row.is_promotion)actions.push({action:'dc_fulfill',label:'Confirm completed delivery'},{action:'dc_refund',label:'Refund unfulfilled request in DC'})
- if(resource==='boost_plans'&&root)actions.push({action:'edit_boost',label:'Edit booster plan'})
+ if(resource==='boost_plans'&&root)actions.push({action:'edit_boost',label:'Edit booster package'})
  if(resource==='site_settings'&&root)actions.push({action:'edit_site',label:'Edit site settings'})
  if(resource==='bank_transfer_details'&&root)actions.push({action:'edit_bank',label:'Change bank details'})
  if(resource==='profiles'&&root)actions.push({action:'edit_profile',label:'Edit profile details'})

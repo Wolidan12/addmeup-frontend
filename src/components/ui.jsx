@@ -147,7 +147,7 @@ export function SimpleProfileCard({ p, actions }) {
         </Link>
         <div className="creator-simple-identity">
           <Link to={path} className="creator-simple-name">
-            {p.display_name} <ProfileCompletionBadge profile={p} />
+            {p.display_name} <ProfileCompletionBadge profile={p} showLabel />
           </Link>
           <span className="creator-simple-handle">@{p.username}</span>
         </div>

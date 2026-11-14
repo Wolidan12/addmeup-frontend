@@ -132,15 +132,31 @@ revoke all on function public.guard_admin_member_feed_grant() from public,anon,a
 
 -- Sponsored member time satisfies the same public-profile, restriction, link, and
 -- reciprocal-block rules as purchased listing time. Managed profiles are separate.
+-- Match migration 018's six required fields and the UI badge's nonblank-value
+-- semantics. The legacy SQL predicate checks cardinality(interests); profile writes
+-- now reject blank interests, but old rows may predate that validator.
+-- This is profile completion, never identity or email verification.
+create function public.admin_feed_profile_complete(p_user uuid) returns boolean
+language sql stable security definer set search_path=public as $$
+ select coalesce((select length(trim(display_name))>=2 and display_name<>'New creator'
+   and length(trim(username))>=3 and length(trim(bio))>0 and length(trim(country))>0
+   and coalesce(length(trim(avatar_url)),0)>0 and cardinality(interests)>0
+   and exists(select 1 from unnest(coalesce(interests,'{}'::text[])) as interest(value)
+              where length(trim(value))>0)
+   from public.profiles where id=p_user),false)
+$$;
+revoke all on function public.admin_feed_profile_complete(uuid) from public,anon,authenticated,service_role;
+
 create or replace function public.feed_is_active(p_user uuid) returns boolean
 language sql stable security definer set search_path=public as $$
  select public.feed_profile_ready(p_user)
   and (
    exists(select 1 from public.feed_listing_orders o
           where o.user_id=p_user and o.starts_at<=now() and o.ends_at>now())
-   or exists(select 1 from public.admin_member_feed_grants g
-             where g.user_id=p_user and g.revoked_at is null
-               and g.starts_at<=now() and g.ends_at>now())
+   or (public.admin_feed_profile_complete(p_user)
+    and exists(select 1 from public.admin_member_feed_grants g
+     where g.user_id=p_user and g.revoked_at is null
+       and g.starts_at<=now() and g.ends_at>now()))
   )
   and not exists(select 1 from public.blocks b
    where (b.blocker_id=auth.uid() and b.blocked_id=p_user)
@@ -280,6 +296,7 @@ language plpgsql volatile security definer set search_path=public as $$
 declare
  is_member boolean;
  ready boolean;
+ profile_complete boolean;
  listing_enabled boolean;
 begin
  perform public.require_active_account();
@@ -293,19 +310,21 @@ begin
  select coalesce((select r.role from public.user_roles r where r.user_id=p_user),'user')='user'
   into is_member;
  ready:=public.feed_profile_ready(p_user);
+ profile_complete:=public.admin_feed_profile_complete(p_user);
  listing_enabled:=coalesce((select s.enabled from public.feed_listing_settings s where s.id),false);
  return jsonb_build_object(
   'user_id',p_user,
   'member_account',is_member,
   'profile_ready',ready,
+  'profile_complete',profile_complete,
   'enabled',listing_enabled,
-  'eligible',is_member and ready and listing_enabled,
+  'eligible',is_member and ready and profile_complete and listing_enabled,
   'server_now',now(),
   'listed_now',ready and (
    exists(select 1 from public.feed_listing_orders o where o.user_id=p_user
     and o.starts_at<=now() and o.ends_at>now())
-   or exists(select 1 from public.admin_member_feed_grants g where g.user_id=p_user
-    and g.revoked_at is null and g.starts_at<=now() and g.ends_at>now())
+   or (profile_complete and exists(select 1 from public.admin_member_feed_grants g where g.user_id=p_user
+    and g.revoked_at is null and g.starts_at<=now() and g.ends_at>now()))
   ),
   'paid_until',(select max(o.ends_at) from public.feed_listing_orders o
     where o.user_id=p_user and o.ends_at>now()),
@@ -376,6 +395,9 @@ begin
  end if;
  if not public.feed_profile_ready(p_user) then
   raise exception 'Member profile must be public, unrestricted, and have a supported public social link';
+ end if;
+ if not public.admin_feed_profile_complete(p_user) then
+  raise exception 'Member profile must be complete before an admin feed listing';
  end if;
  select greatest(clock_timestamp(),coalesce(max(ends_at),clock_timestamp())) into start_time
  from (
@@ -690,7 +712,7 @@ grant execute on function public.admin_member_feed_status(uuid),
  public.admin_grant_member_feed(uuid,text,integer,text,boolean,uuid),
  public.admin_revoke_member_feed(uuid,text,boolean,uuid) to authenticated;
 revoke all on function public.guard_admin_member_feed_grant(),
- public.feed_is_active(uuid),public.discovery_visible(uuid),
+ public.admin_feed_profile_complete(uuid),public.feed_is_active(uuid),public.discovery_visible(uuid),
  public.my_feed_listing(integer),public.buy_feed_listing(text,uuid,integer,integer),
  public.discovery_relationship(uuid,text,boolean),
  public.public_directory(text,text,text,text,integer),
