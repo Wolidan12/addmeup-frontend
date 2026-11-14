@@ -116,6 +116,59 @@ export function ProfileCard({ p, onSave, saved }) {
     </article>
   );
 }
+export function SimpleProfileCard({ p, actions }) {
+  const site = useSite();
+  const [imageFailed, setImageFailed] = useState(false);
+  const path = `/${p.managed ? "listing" : "profile"}/${p.username}${p.promotion_id ? "?promotion=" + encodeURIComponent(p.promotion_id) : ""}`;
+  const links = (p.social_links || []).filter(
+    (link) =>
+      link.is_public &&
+      site.enabled_platforms.includes(link.platform) &&
+      validSocialUrl(link.platform, link.url, site.platforms),
+  );
+  const disclosure = p.managed
+    ? "Managed listing"
+    : p.promotion_id
+      ? `Paid promotion · ${p.promotion_kind}`
+      : p.feed_listing_paid
+        ? "Paid feed listing"
+        : "";
+
+  return (
+    <article className={"creator-card creator-card-simple" + (p.promotion_id ? " creator-card-paid" : "")}>
+      {disclosure && <span className="creator-simple-disclosure">{disclosure}</span>}
+      <div className="creator-simple-header">
+        <Link to={path} className="creator-simple-avatar" aria-label={`${p.display_name} profile`}>
+          {p.avatar_url && !imageFailed ? (
+            <img src={p.avatar_url} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setImageFailed(true)} />
+          ) : (
+            <span>{(p.display_name || p.username || "?")[0]}</span>
+          )}
+        </Link>
+        <div className="creator-simple-identity">
+          <Link to={path} className="creator-simple-name">
+            {p.display_name} <ProfileCompletionBadge profile={p} />
+          </Link>
+          <span className="creator-simple-handle">@{p.username}</span>
+        </div>
+        {actions}
+      </div>
+      {p.paid_premium_badge && <span className="paid-cosmetic-badge">Paid Premium badge · cosmetic, not verification</span>}
+      {p.promotion_copy && <p className="promotion-copy">{p.promotion_copy}</p>}
+      <p className="creator-simple-bio">{p.bio || "A new connection waiting to happen."}</p>
+      <div className="creator-simple-tags">
+        {p.country && <span className="creator-simple-tag"><MapPin size={14} />{p.country}</span>}
+        {(p.interests || []).slice(0, 3).map((interest) => <span className="creator-simple-tag" key={interest}>{interest}</span>)}
+      </div>
+      {links.length > 0 && (
+        <div className="creator-simple-socials" aria-label="Public social links">
+          {links.map((link) => <SocialBadge campaign={p.promotion_id} profile={p.id} key={link.platform} {...link} />)}
+        </div>
+      )}
+    </article>
+  );
+}
+
 export function States({ loading, error, empty }) {
   if (loading)
     return (

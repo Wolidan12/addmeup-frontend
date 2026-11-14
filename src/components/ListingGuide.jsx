@@ -1,12 +1,18 @@
-import {useState} from 'react'
 import {Link} from 'react-router-dom'
+
 const steps=[
- {title:'Save your profile',body:'Open My profile. Check your display name, add a short introduction if you want, and save. Your signup username and saved photo are reused—you do not need another account or a second profile form.',link:'/settings',action:'Edit my profile'},
- {title:'Make it public',body:'In My profile, turn on Allow my profile to be public. Add at least one official social link, mark that link public, and save both changes. Come back here and refresh the listing status.',link:'/settings',action:'Set up public profile & links'},
- {title:'Choose your listing time',body:'Use the available listing balance below: purchased DC plus your unspent 5,000 DC launch reward. Choose a duration and review its exact cost. A full 5,000 DC reward can cover 48 hours for 4,600 DC, leaving 400 DC. Other rewards are not listing funds.',link:'/wallet',action:'Open my wallet'},
- {title:'Confirm & check the feed',body:'Review the cost and duration, tick the confirmation, then confirm once. We reuse your saved profile. Check the start/end time and verified feed status below. If a result is uncertain, resume the saved request—do not start a new payment. There is no automatic renewal.',link:'/discover',action:'Open the community feed'}
+ {title:'Use your saved profile',body:'Your signup username and saved profile are reused. No new account or repeated profile form.',link:'/settings',action:'Review my profile'},
+ {title:'Make it public',body:'Turn on public profile and share at least one supported social link publicly. Refresh status after saving.',link:'/settings',action:'Set profile & link public'},
+ {title:'Choose time below',body:'Pick a duration, check the price and confirm once. Only purchased DC and your unspent 5,000 DC first-50 launch reward count; 7-DC connection rewards do not.',link:'#feed-listing-options',action:'Choose a duration'}
 ]
 export default function ListingGuide({ready,inFeed,onRefresh}){
- const [step,setStep]=useState(0),active=steps[step]
- return <section className="listing-guide" aria-labelledby="listing-guide-title"><div className="listing-guide-heading"><div><p className="member-eyebrow">YOUR LISTING · FOUR SIMPLE STEPS</p><h2 id="listing-guide-title">From your profile to the feed.</h2></div><span className="listing-guide-state">{ready===undefined?'Checking readiness…':inFeed?'Live in the feed':ready?'Profile ready to list':'Set up your public profile'}</span></div><ol className="listing-guide-steps" aria-label="Listing instructions">{steps.map((s,i)=><li key={s.title}><button type="button" aria-current={step===i?'step':undefined} onClick={()=>setStep(i)}><span>0{i+1}</span>{s.title}</button></li>)}</ol><div className="listing-guide-copy" aria-live="polite"><p className="member-eyebrow">STEP {step+1} OF 4</p><h3>{active.title}</h3><p>{active.body}</p><Link to={active.link}>{active.action} →</Link>{step===1&&<button type="button" onClick={onRefresh}>I saved my changes · check readiness</button>}</div><div className="listing-guide-controls"><button type="button" disabled={step===0} onClick={()=>setStep(s=>s-1)}>Previous step</button><button type="button" disabled={step===3} onClick={()=>setStep(s=>s+1)}>Next step →</button></div><p className="listing-guide-note">Saving a profile is free. Listing time is deducted only after you confirm. Keeping your profile and a social link public is required; hiding them does not pause booked time.</p></section>
+ const state=ready===undefined?'Checking readiness…':inFeed?'Live in the feed':ready?'Ready to list':'Set up your public profile'
+ return <section className="listing-guide" aria-labelledby="listing-guide-title">
+  <div className="listing-guide-heading"><div><p className="member-eyebrow">YOUR PROFILE · THREE QUICK STEPS</p><h2 id="listing-guide-title">List your profile in the feed.</h2></div><span className="listing-guide-state">{state}</span></div>
+  <ol className="listing-guide-steps" aria-label="How to list your profile">{steps.map((step,index)=><li key={step.title}>
+   <span className="listing-guide-number" aria-hidden="true">0{index+1}</span><h3>{step.title}</h3><p>{step.body}</p>
+   {index===1?<><Link to={step.link}>{step.action} →</Link><button type="button" onClick={onRefresh}>I saved my changes · refresh status</button></>:<Link to={step.link}>{step.action} →</Link>}
+  </li>)}</ol>
+  <p className="listing-guide-note">Saving your profile is free. Your listing clock keeps running while your profile or public links are hidden. No automatic renewal.</p>
+ </section>
 }

@@ -1,0 +1,15 @@
+/* Global legibility lift: keep the app's typography and controls readable across routes. */
+html {
+  zoom: 1.1;
+}
+
+body {
+  font-weight: 550;
+}
+
+button,
+input,
+select,
+textarea {
+  font-weight: inherit;
+}
