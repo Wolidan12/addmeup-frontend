@@ -14,6 +14,7 @@ function memberFeedError(error){
  if(/New feed listings are paused/.test(message))return 'New feed listings are paused. No change was made; refresh eligibility before trying again.'
  if(/Choose the same available listing duration/.test(message))return 'That saved duration is no longer available. Refresh member status before creating a new listing request.'
  if(/Member profile must be public/.test(message))return 'The member must make their profile and a supported social link public, and be unrestricted, before listing.'
+ if(/Member profile must be complete/.test(message))return 'The member must complete their name, username, photo, bio, country and at least one interest before an admin-sponsored listing.'
  if(/Member profile unavailable/.test(message))return 'This member profile is no longer available. No listing change was made.'
  if(/Permission denied/.test(message))return 'Your signed-in role cannot perform this member listing action.'
  return publicError(error,'We could not confirm this member listing action. Check status before retrying.')
@@ -22,7 +23,7 @@ function failedBeforeCommit(error){
  return error?.code==='42501'||(error?.code==='P0001'&&!/Request reference unavailable/.test(error.message||''))
 }
 function validateStatus(value,target){
- if(!value||value.user_id!==target||typeof value.member_account!=='boolean'||typeof value.profile_ready!=='boolean'||typeof value.enabled!=='boolean'||typeof value.eligible!=='boolean'||value.eligible!==(value.member_account&&value.profile_ready&&value.enabled)||typeof value.listed_now!=='boolean'||!Number.isFinite(Date.parse(value.server_now))||!validDate(value.active_until)||!validDate(value.admin_until)||!validDate(value.paid_until)||!Array.isArray(value.packages))throw new Error('Invalid member listing status')
+ if(!value||value.user_id!==target||typeof value.member_account!=='boolean'||typeof value.profile_ready!=='boolean'||typeof value.profile_complete!=='boolean'||typeof value.enabled!=='boolean'||typeof value.eligible!=='boolean'||value.eligible!==(value.member_account&&value.profile_ready&&value.profile_complete&&value.enabled)||typeof value.listed_now!=='boolean'||!Number.isFinite(Date.parse(value.server_now))||!validDate(value.active_until)||!validDate(value.admin_until)||!validDate(value.paid_until)||!Array.isArray(value.packages))throw new Error('Invalid member listing status')
  if(value.packages.some(p=>!p||typeof p.key!=='string'||typeof p.label!=='string'||!Number.isInteger(p.duration_hours)||p.duration_hours<7||p.duration_hours>720)||new Set(value.packages.map(p=>p.key)).size!==value.packages.length)throw new Error('Invalid member listing options')
  return value
 }
@@ -126,7 +127,7 @@ export default function MemberFeedListingDialog({operation,onClose,onSaved}){
  }
  const refreshStatus=()=>setRetryStatus(value=>value+1)
  const close=()=>{if(!busy)onClose?.()}
- const statusLine=loading?'Checking server-side eligibility…':status?.listed_now?'The profile is currently listed in the community feed.':status?.active_until?'Listing time is scheduled, but is not live yet.':'No current or scheduled feed listing.'
+ const statusLine=loading?'Checking server-side eligibility…':status?.listed_now?'The profile is currently listed in the community feed.':status?.admin_until&&!status.profile_complete?'Admin-sponsored time is hidden until the profile-complete badge is earned; its clock is unchanged.':status?.active_until?'Listing time is scheduled, but is not live yet.':'No current or scheduled feed listing.'
  return <dialog ref={dialog} className="ad-dialog member-feed-dialog" aria-labelledby="member-feed-title" onCancel={e=>{if(busy)e.preventDefault();else close()}}>
   <form onSubmit={submit}>
    <p className="ad-eyebrow">REGISTERED MEMBER · AUDITED FEED CONTROL</p>
@@ -136,7 +137,8 @@ export default function MemberFeedListingDialog({operation,onClose,onSaved}){
    {loading?<p role="status">Checking listing eligibility…</p>:status&&<>
     <dl className="member-feed-status">
      <div><dt>Registered member account</dt><dd>{status.member_account?'Yes':'No — staff accounts cannot receive this feature'}</dd></div>
-     <div><dt>Standard public-profile eligibility</dt><dd>{status.profile_ready?'Ready':'Not ready'}</dd></div>
+     <div><dt>Public profile & social-link eligibility</dt><dd>{status.profile_ready?'Ready':'Not ready'}</dd></div>
+     <div><dt>Profile-complete badge</dt><dd>{status.profile_complete?'Earned · shown on the feed':'Not earned · required for admin-sponsored listing'}</dd></div>
      <div><dt>Listing availability</dt><dd>{status.enabled?'Open':'New listings are paused'}</dd></div>
      <div><dt>Feed status</dt><dd>{statusLine}</dd></div>
      {status.paid_until&&<div><dt>Member-paid time booked through</dt><dd>{date(status.paid_until)}</dd></div>}
@@ -144,6 +146,8 @@ export default function MemberFeedListingDialog({operation,onClose,onSaved}){
     </dl>
     {!status.member_account&&<p className="ad-error">Only a regular registered member account can receive this feature. Existing paid listing time is never changed.</p>}
     {!status.profile_ready&&<p className="ad-notice">The saved profile must be public, unrestricted, and have an eligible public social link. Ask the member to update their own settings; this action cannot bypass privacy or restrictions.</p>}
+    {!status.profile_complete&&<p className="ad-notice">The member must complete their name, signup username, photo, bio, country and at least one interest. The existing “Profile complete” badge will then appear in the feed; this is not identity verification, and an admin cannot mark it manually. New admin-sponsored visibility is blocked until then.</p>}
+    {!status.profile_complete&&status.admin_until&&<p className="ad-notice">Existing admin-sponsored hours are hidden from the feed while the badge is incomplete; their clock is not extended. Member-paid listing time remains on its existing path.</p>}
     {!status.enabled&&<p className="ad-notice">New listing actions are paused. No feed time or balance will change.</p>}
    </>}
    {pending&&<p className="ad-notice" role="status">A saved request may still be processing. Retry the same action with the exact same duration and reason. Do not start a second request.</p>}

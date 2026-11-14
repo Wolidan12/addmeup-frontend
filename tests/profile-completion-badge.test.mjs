@@ -21,10 +21,13 @@ assert.equal(hasCompleteProfile({paid_premium_badge:true,verified:true,profile_c
 assert.match(PROFILE_BADGE_DESCRIPTION,/Not identity verification/);
 const built=await build({entryPoints:['src/components/ProfileCompletionBadge.jsx'],bundle:true,write:false,platform:'node',format:'cjs',jsx:'automatic',external:['react','react/jsx-runtime']});
 const module={exports:{}};vm.runInNewContext(built.outputFiles[0].text,{module,exports:module.exports,require:createRequire(import.meta.url)});
-const Badge=module.exports.default,render=p=>renderToStaticMarkup(React.createElement(Badge,{profile:p}));
+const Badge=module.exports.default,render=(p,showLabel=false)=>renderToStaticMarkup(React.createElement(Badge,{profile:p,showLabel}));
 assert.match(render(profile),/aria-label="Profile complete"/);
 assert.match(render(profile),/<svg/);assert.match(render(profile),/Not identity verification/);
+assert.match(render(profile,true),/profile-complete-badge-labeled/);
+assert.match(render(profile,true),/Profile complete/);
 assert.equal(render({...profile,bio:''}),'');assert.equal(render({...profile,managed:true}),'');
 for(const file of ['src/components/ui.jsx','src/member/MemberLayout.jsx','src/pages/MemberDashboard.jsx'])assert.match(await readFile(file,'utf8'),/<ProfileCompletionBadge profile=/);
-assert.match(await readFile('src/design/premium.css','utf8'),/fill: #a855f7/);
-console.log('PASS purple completion badge: six required fields, blank/missing/incomplete denial, automatic removal, managed/paid exclusion, accessible SVG and shared placement. Not identity verification.');
+assert.match(await readFile('src/components/ui.jsx','utf8'),/<ProfileCompletionBadge profile=\{p\} showLabel \/>/);
+assert.match(await readFile('src/design/premium.css','utf8'),/fill: var\(--amu-accent/);
+console.log('PASS AddMeUp-accent completion badge: six required fields, blank/missing/incomplete denial, automatic removal, managed/paid exclusion, accessible SVG and shared placement. Not identity verification.');
