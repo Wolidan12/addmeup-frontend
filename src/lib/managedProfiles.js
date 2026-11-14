@@ -10,8 +10,10 @@ export function prepareManagedBatch(drafts){
   if(!name||name.length>60)fail('enter a display name of 1–60 characters.')
   if(d.bio.length>280||d.country.length>80)fail('bio or country is too long.')
   if(interests.length>10||interests.some(s=>s.length>40))fail('use up to ten interests, each 40 characters or fewer.')
+  const is_public=!!d.is_public,avatar_url=d.avatar_url||''
+  if(is_public&&(name.length<2||name==='New creator'||!avatar_url.trim()||!d.bio.trim()||!d.country.trim()||!interests.length))fail('complete the name, username, photo, bio, country and at least one interest before publishing publicly; the Profile complete badge reflects these fields only.')
   const social_links=PLATFORMS.filter(p=>d.links[p]?.trim()).map(platform=>{const url=d.links[platform].trim();if(!validSocialUrl(platform,url))fail(`use an official ${platform} link.`);return {platform,url:socialHref(platform,url),is_public:true}})
-  return {username,display_name:name,bio:d.bio,country:d.country,interests:[...new Set(interests)],avatar_url:d.avatar_url||'',is_public:!!d.is_public,social_links}
+  return {username,display_name:name,bio:d.bio,country:d.country,interests:[...new Set(interests)],avatar_url,is_public,social_links}
  })
 }
 

@@ -17,7 +17,9 @@ const db=new PGlite(),bootstrap=(await readFile('tests/admin-database.test.mjs',
 await db.exec(bootstrap)
 await db.exec('alter table auth.users add column email_confirmed_at timestamptz,add column last_sign_in_at timestamptz,add column banned_until timestamptz,add column created_at timestamptz default now()')
 await db.exec('alter default privileges in schema public grant all on tables to anon,authenticated')
-for(const f of (await readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')).sort())await db.exec((await readFile('supabase/migrations/'+f,'utf8')).replace('create extension if not exists pgcrypto;',''))
+// Migration 026 requires the separately installed free managed-feed baseline; its
+// guarded post-install path is exercised in free-admin-managed-feed.test.mjs.
+for(const f of (await readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')&&f!=='026_managed_profile_completion.sql').sort())await db.exec((await readFile('supabase/migrations/'+f,'utf8')).replace('create extension if not exists pgcrypto;',''))
 const root='a1000000-0000-4000-8000-000000000001',user='a2000000-0000-4000-8000-000000000002',other='a3000000-0000-4000-8000-000000000003'
 await db.query('insert into auth.users(id,email,email_confirmed_at) values($1,$2,now())',[root,'owner@example.org']);await db.query("insert into public.user_roles(user_id,role) values($1,'super_admin')",[root])
 await db.exec("alter table auth.users add column raw_user_meta_data jsonb not null default '{}'::jsonb")

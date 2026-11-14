@@ -2,6 +2,9 @@ import assert from 'node:assert/strict'
 import {newManagedDraft,prepareManagedBatch,prepareManagedEdit} from '../src/lib/managedProfiles.js'
 const draft={...newManagedDraft(),username:'creator_one',display_name:'Creator One',links:{whatsapp:'+234 801 234 5678',instagram:'instagram.com/creator_one'}}
 const out=prepareManagedBatch([draft]);assert.equal(out[0].is_public,false);assert.equal(out[0].social_links[0].url,'https://wa.me/2348012345678')
+assert.throws(()=>prepareManagedBatch([{...draft,is_public:true}]),/complete the name, username, photo, bio, country and at least one interest/)
+const publicListing=prepareManagedBatch([{...draft,is_public:true,avatar_url:'https://example.org/portrait.jpg',bio:'A complete admin listing',country:'NG',interests:'music'}])[0]
+assert.equal(publicListing.is_public,true);assert.equal(publicListing.avatar_url,'https://example.org/portrait.jpg');assert.deepEqual(publicListing.interests,['music'])
 assert.throws(()=>prepareManagedBatch([draft,draft]),/appears twice/)
 assert.throws(()=>prepareManagedBatch([{...draft,username:'Bad Username'}]),/Profile 1/)
 assert.throws(()=>prepareManagedBatch([{...draft,links:{instagram:'https://evil.example/creator'}}]),/official instagram/)

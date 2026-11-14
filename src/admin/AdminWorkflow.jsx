@@ -1,5 +1,5 @@
 import {useState} from 'react'
-import {resources,canView,formatLabel,rowActions} from './resources'
+import {resources,canView,formatLabel,cardQuickActions} from './resources'
 import {adminSections} from './sections'
 
 export function AdminShortcuts({role,tab,onNavigate}){
@@ -14,11 +14,11 @@ export function AdminToolSearch({role,onNavigate}){
 export function RecordFields({record,display}){
  return <dl className="admin-readable-fields">{Object.entries(record).map(([key,value])=><div key={key}><dt>{formatLabel(key)}</dt><dd>{value&&typeof value==='object'?Array.isArray(value)&&value.every(v=>typeof v!=='object')?value.join(', ')||'—':<details><summary>View {formatLabel(key)}</summary>{Array.isArray(value)?value.map((entry,i)=><pre key={i}>{JSON.stringify(entry,null,2)}</pre>):<RecordFields record={value} display={display}/>}</details>:display(key,value)}</dd></div>)}</dl>
 }
-export function AdminRecordCards({rows,resource,role,display,busy,onOpen,onAction}){
+export function AdminRecordCards({rows,resource,role,actorId,display,busy,onOpen,onAction}){
  return <div className="admin-record-cards" aria-busy={busy}>{rows.map((row,i)=>{
   const title=row.display_name||row.username||row.subject||row.title||row.label||row.code||row.email||resource.label
   const fields=resource.columns.filter(k=>!['id','user_id','display_name','username','title','subject','status'].includes(k)).slice(0,4)
-  const quick=rowActions(resource.key,row,role).find(a=>['edit_profile','support_ticket','edit_listing'].includes(a.action))
-  return <article className="admin-record-card" key={row.id||row.user_id||row.key||i}><header><h3>{title}</h3>{row.status&&<span className="ad-status">{formatLabel(row.status)}</span>}</header>{row.username&&row.display_name&&<p>@{row.username}</p>}<dl>{fields.map(k=><div key={k}><dt>{formatLabel(k)}</dt><dd>{display(k,row[k])}</dd></div>)}</dl><footer><button disabled={busy} onClick={()=>onOpen(row)}>{resource.key==='profiles'?'Open user':'Details & actions'}</button>{quick&&<button disabled={busy} onClick={()=>onAction({...quick,row})}>{quick.label}</button>}</footer></article>
+  const quickActions=cardQuickActions(resource.key,row,role,actorId)
+  return <article className="admin-record-card" key={row.id||row.user_id||row.key||i}><header><h3>{title}</h3>{row.status&&<span className="ad-status">{formatLabel(row.status)}</span>}</header>{row.username&&row.display_name&&<p>@{row.username}</p>}<dl>{fields.map(k=><div key={k}><dt>{formatLabel(k)}</dt><dd>{display(k,row[k])}</dd></div>)}</dl><footer><button disabled={busy} onClick={()=>onOpen(row)}>{resource.key==='profiles'?'Open user':'Details & actions'}</button>{quickActions.map(quick=><button key={quick.action} disabled={busy} onClick={()=>onAction({...quick,row})}>{quick.label}</button>)}</footer></article>
  })}</div>
 }

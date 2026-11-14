@@ -128,7 +128,7 @@ try{
 
  // Existing admin-managed listings remain a separate, free managed_profiles branch.
  const managedId=crypto.randomUUID()
- const managedPayload={username:'separate_managed',display_name:'Separate Managed',bio:'A managed community card',country:'NG',interests:['art'],avatar_url:'',is_public:true,social_links:[]}
+ const managedPayload={username:'separate_managed',display_name:'Separate Managed',bio:'A managed community card',country:'NG',interests:['art'],avatar_url:'https://example.org/managed-card.jpg',is_public:true,social_links:[]}
  await db.exec('reset role');const usersBefore=(await db.query('select count(*)::int n from auth.users')).rows[0].n;await as(ids.root)
  await db.query('select public.admin_save_managed_profile($1,$2,$3)',[managedId,managedPayload,'Keep managed listing separate from members'])
  await db.exec('reset role');assert.equal((await db.query('select count(*)::int n from auth.users')).rows[0].n,usersBefore)
