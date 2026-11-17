@@ -169,6 +169,21 @@ html[data-theme="light"] .member-feed-status dt{color:#2056a0}
 html[data-theme="light"] .member-feed-status dd{color:#102d54}
 html[data-theme="light"] .member-feed-mode button[aria-pressed="true"]{border-color:#a8bedb;background:#edf4ff;color:#102d54}
 html[data-theme="light"] .member-feed-confirm{color:#102d54!important}
+html[data-theme="light"] .member-profile-assist{border:1px solid #a8bedb;background:linear-gradient(145deg, #ffffff, #ffffff)}
+html[data-theme="light"] .member-profile-assist-heading h3{color:#102d54}
+html[data-theme="light"] .member-profile-assist .ad-eyebrow{color:#2056a0}
+html[data-theme="light"] .member-profile-assist fieldset{border:1px solid #a8bedb;background:#ffffffa8}
+html[data-theme="light"] .member-profile-assist legend{color:#102d54}
+html[data-theme="light"] .member-profile-assist-fields label,html[data-theme="light"]  .member-profile-assist-links label{color:#102d54!important}
+html[data-theme="light"] .member-profile-assist-fields label span,html[data-theme="light"]  .member-profile-assist-links label span{color:#102d54}
+html[data-theme="light"] .member-profile-assist input,html[data-theme="light"]  .member-profile-assist select,html[data-theme="light"]  .member-profile-assist textarea{color:#102d54;border:1px solid #a8bedb;background:#ffffff}
+html[data-theme="light"] .member-profile-assist .member-profile-assist-links > p{color:#2056a0}
+html[data-theme="light"] .member-profile-assist-link{border-top:1px solid #a8bedb}
+html[data-theme="light"] .member-profile-assist-link > button{color:#102d54;border-color:#a8bedb;background:#ffffff}
+html[data-theme="light"] .member-profile-assist-add{color:#102d54;background:#ffffff!important}
+html[data-theme="light"] .member-profile-assist-warning{border:1px solid #a8bedb;color:#102d54;background:#ffffff}
+html[data-theme="light"] .member-profile-assist-consent{color:#102d54!important}
+html[data-theme="light"] .member-profile-assist input:focus-visible,html[data-theme="light"]  .member-profile-assist select:focus-visible,html[data-theme="light"]  .member-profile-assist textarea:focus-visible,html[data-theme="light"]  .member-profile-assist button:focus-visible{outline:2px solid #a8bedb}
 html[data-theme="light"] .bank-review header p{color:#102d54}
 html[data-theme="light"] .bank-review-facts{background:#e3efff06;border:1px solid #a8bedbbb}
 html[data-theme="light"] .bank-review-facts dt{color:#102d54}
