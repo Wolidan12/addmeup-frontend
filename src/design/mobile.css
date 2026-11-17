@@ -1,0 +1,196 @@
+/* Shared small-screen safeguards for the public, member, and admin workspaces. */
+:root {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+}
+html,
+body {
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+#root {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+img,
+video,
+canvas {
+  max-width: 100%;
+}
+main,
+section,
+article,
+aside,
+nav,
+form,
+fieldset {
+  min-width: 0;
+}
+button,
+a,
+input,
+select,
+textarea,
+summary {
+  touch-action: manipulation;
+}
+
+@media (max-width: 760px) {
+  .member-shell,
+  .ad-shell {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  .member-sidebar,
+  .ad-sidebar {
+    top: 0;
+    bottom: 0;
+    height: 100vh;
+    height: 100dvh;
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  }
+  .member-sidebar nav {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ad-sidebar nav {
+    min-height: 0;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .member-content,
+  .ad-content {
+    min-width: 0;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .member-topbar,
+  .ad-topbar {
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .public-nav {
+    height: calc(73px + env(safe-area-inset-top, 0px));
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .public-nav-inner {
+    height: 73px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .public-links {
+    top: calc(73px + env(safe-area-inset-top, 0px));
+    padding-left: max(20px, env(safe-area-inset-left, 0px));
+    padding-right: max(20px, env(safe-area-inset-right, 0px));
+  }
+  .public-links > a {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+  }
+  .public-menu-toggle,
+  .member-menu,
+  .ad-shell .ad-menu {
+    min-width: 44px;
+    min-height: 44px;
+    display: grid;
+    place-items: center;
+  }
+  .member-sidebar nav > a,
+  .member-sidebar-bottom > a,
+  .member-sidebar-bottom > button,
+  .ad-sidebar nav button,
+  .member-mobile-nav > a {
+    min-height: 44px;
+  }
+  .member-mobile-nav {
+    padding-left: max(7px, env(safe-area-inset-left, 0px));
+    padding-right: max(7px, env(safe-area-inset-right, 0px));
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+  .member-mobile-nav > a {
+    justify-content: center;
+  }
+  .public-footer {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  button {
+    min-height: 44px;
+  }
+  :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+    min-height: 44px;
+    font-size: 16px;
+  }
+  dialog[open] {
+    box-sizing: border-box;
+    max-width: calc(100vw - max(12px, env(safe-area-inset-left, 0px)) - max(12px, env(safe-area-inset-right, 0px)));
+    max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px);
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ad-dialog-actions button,
+  .member-dialog-actions button {
+    min-height: 44px;
+  }
+  .member-feed-status,
+  .member-profile-assist,
+  .ad-dialog form {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .member-feed-status dd,
+  .member-profile-assist p,
+  .ad-dialog p,
+  .ad-dialog label {
+    overflow-wrap: anywhere;
+  }
+  .ad-table-wrap,
+  .member-table-wrap,
+  .workspace-chart {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .theme-toggle {
+    left: max(12px, env(safe-area-inset-left, 0px));
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  }
+  .app-update {
+    left: max(16px, env(safe-area-inset-left, 0px));
+    right: max(16px, env(safe-area-inset-right, 0px));
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+    width: auto;
+  }
+  .ad-shell .admin-shortcuts {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .member-page-heading,
+  .ad-shell .ad-content > .ad-heading {
+    flex-wrap: wrap;
+  }
+  .member-page-heading > *,
+  .ad-shell .ad-content > .ad-heading > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .ad-shell .ad-content > .ad-heading .ad-heading-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}

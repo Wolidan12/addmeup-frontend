@@ -1385,3 +1385,179 @@
     flex: 1 1 100%;
   }
 }
+
+/* Member-approved profile assistance uses the same violet/blue control-room palette. */
+.member-profile-assist {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 17px;
+  border: 1px solid #555079;
+  border-radius: 13px;
+  background: linear-gradient(145deg, #1e1b32, #152333);
+}
+.member-profile-assist-heading h3 {
+  margin: 2px 0 0;
+  color: #eeeaff;
+  font-size: 17px;
+  letter-spacing: -0.35px;
+}
+.member-profile-assist .ad-eyebrow {
+  margin: 0 0 5px;
+  color: #b8a8ed;
+  font-size: 9px;
+  letter-spacing: 1.4px;
+}
+.member-profile-assist > p {
+  margin: 0;
+  line-height: 1.75;
+}
+.member-profile-assist fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 13px;
+  border: 1px solid #394c68;
+  border-radius: 10px;
+  background: #111e30a8;
+}
+.member-profile-assist legend {
+  padding: 0 7px;
+  color: #d4c9f7;
+  font-size: 11px;
+  font-weight: 650;
+}
+.member-profile-assist-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 12px;
+}
+.member-profile-assist-fields label, .member-profile-assist-links label {
+  display: block;
+  min-width: 0;
+  margin: 7px 0 !important;
+  color: #c4cce0 !important;
+  font-size: 11px !important;
+}
+.member-profile-assist-fields label span, .member-profile-assist-links label span {
+  display: block;
+  color: #bdc8df;
+  font-size: 10px;
+  font-weight: 600;
+}
+.member-profile-assist input, .member-profile-assist select, .member-profile-assist textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 40px;
+  padding: 9px 10px;
+  color: #ecf2fc;
+  border: 1px solid #3b506e;
+  border-radius: 7px;
+  background: #101b2b;
+  font-size: 12px;
+}
+.member-profile-assist textarea {
+  min-height: 76px;
+  resize: vertical;
+}
+.member-profile-assist .member-profile-assist-links > p {
+  color: #92a6c3;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.member-profile-assist-link {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.75fr) minmax(0, 1.4fr) auto;
+  align-items: end;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 0;
+  border-top: 1px solid #2e425d;
+}
+.member-profile-assist-link label {
+  margin: 4px 0 !important;
+}
+.member-profile-assist-link > button {
+  min-height: 40px;
+  margin-bottom: 4px;
+  padding: 8px 10px;
+  color: #e5b8c9;
+  border-color: #614153;
+  background: #332538;
+}
+.member-profile-assist-add {
+  min-height: 40px;
+  margin-top: 7px;
+  border-style: dashed !important;
+  color: #d3c6fb;
+  background: #272640 !important;
+}
+.member-profile-assist-warning {
+  padding: 12px 14px !important;
+  border: 1px solid #6b5832;
+  border-radius: 9px;
+  color: #f1d49c;
+  background: #332b1d;
+  font-size: 10px !important;
+  line-height: 1.8;
+}
+.member-profile-assist-consent {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 3px 0 !important;
+  color: #b5c3dc !important;
+  font-size: 10px !important;
+  line-height: 1.75;
+}
+.member-profile-assist-consent input {
+  width: 17px;
+  min-width: 17px;
+  min-height: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  margin: 3px 0 0;
+}
+.member-profile-assist-consent span {
+  min-width: 0;
+}
+.member-profile-assist-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.member-profile-assist-actions button {
+  min-height: 42px;
+}
+.member-profile-assist .ad-notice,
+.member-profile-assist .ad-error {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.member-profile-assist input:focus-visible, .member-profile-assist select:focus-visible, .member-profile-assist textarea:focus-visible, .member-profile-assist button:focus-visible {
+  outline: 2px solid #b6a1ff;
+  outline-offset: 2px;
+}
+@media (max-width: 520px) {
+  .member-profile-assist {
+    padding: 13px;
+  }
+  .member-profile-assist-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .member-profile-assist-link {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+  }
+  .member-profile-assist-link > button {
+    width: 100%;
+    margin: 0;
+  }
+  .member-profile-assist-actions button {
+    flex: 1 1 100%;
+  }
+}

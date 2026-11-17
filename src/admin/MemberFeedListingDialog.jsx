@@ -2,6 +2,7 @@ import {useEffect,useRef,useState} from 'react'
 import {useAuth} from '../context/AuthContext'
 import {supabase} from '../lib/supabase'
 import {InputError,publicError,withTimeout} from '../lib/errors'
+import AdminMemberProfileAssistance from './AdminMemberProfileAssistance'
 
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const validDate=value=>value==null||Number.isFinite(Date.parse(value))
@@ -14,7 +15,7 @@ function memberFeedError(error){
  if(/New feed listings are paused/.test(message))return 'New feed listings are paused. No change was made; refresh eligibility before trying again.'
  if(/Choose the same available listing duration/.test(message))return 'That saved duration is no longer available. Refresh member status before creating a new listing request.'
  if(/Member profile must be public/.test(message))return 'The member must make their profile and a supported social link public, and be unrestricted, before listing.'
- if(/Member profile must be complete/.test(message))return 'The member must complete their name, username, photo, bio, country and at least one interest before an admin-sponsored listing.'
+ if(/Member profile must be complete/.test(message))return 'Complete the required profile details before listing.'
  if(/Member profile unavailable/.test(message))return 'This member profile is no longer available. No listing change was made.'
  if(/Permission denied/.test(message))return 'Your signed-in role cannot perform this member listing action.'
  return publicError(error,'We could not confirm this member listing action. Check status before retrying.')
@@ -40,10 +41,10 @@ function readPending(actor,target){
  return value
 }
 
-export default function MemberFeedListingDialog({operation,onClose,onSaved}){
+export default function MemberFeedListingDialog({operation,onClose,onSaved,onProfileAssisted}){
  const {user}=useAuth(),row=operation?.row||{},target=row.id||row.user_id||'',identity=row.display_name||row.username||'Member'
  const dialog=useRef(null),inFlight=useRef(false),pendingRef=useRef(null)
- const [status,setStatus]=useState(null),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[retryStatus,setRetryStatus]=useState(0),[mode,setMode]=useState('grant'),[packageKey,setPackageKey]=useState(''),[reason,setReason]=useState(''),[confirmed,setConfirmed]=useState(false),[pending,setPending]=useState(null),[storageError,setStorageError]=useState(false)
+ const [status,setStatus]=useState(null),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[assistanceBusy,setAssistanceBusy]=useState(false),[error,setError]=useState(''),[retryStatus,setRetryStatus]=useState(0),[mode,setMode]=useState('grant'),[packageKey,setPackageKey]=useState(''),[reason,setReason]=useState(''),[confirmed,setConfirmed]=useState(false),[pending,setPending]=useState(null),[storageError,setStorageError]=useState(false)
  useEffect(()=>{if(dialog.current&&!dialog.current.open)dialog.current.showModal()},[])
  useEffect(()=>{
   try{
@@ -65,6 +66,7 @@ export default function MemberFeedListingDialog({operation,onClose,onSaved}){
  },[target,retryStatus])
  useEffect(()=>{if(pending)setMode(pending.kind)},[pending])
  const pkg=status?.packages.find(p=>p.key===packageKey)
+ const actionBusy=busy||assistanceBusy
  const expectedHours=pending?.kind==='grant'?pending.duration_hours:pkg?.duration_hours
  const latestAdminEnd=status?.admin_until&&Date.parse(status.admin_until)>Date.parse(status.server_now)
  const latestPaidEnd=status?.paid_until&&Date.parse(status.paid_until)>Date.parse(status.server_now)
@@ -86,7 +88,7 @@ export default function MemberFeedListingDialog({operation,onClose,onSaved}){
   if(!value||value.id!==requestId||value.user_id!==target||value.package_key!==body.p_package||value.duration_hours!==expected||value.cost_dc!==0||value.source!=='admin_feature'||!Number.isFinite(Date.parse(value.starts_at))||!Number.isFinite(Date.parse(value.ends_at))||Date.parse(value.ends_at)-Date.parse(value.starts_at)!==value.duration_hours*3600000)throw new Error('Unconfirmed admin listing result')
  }
  async function submit(event){
-  event.preventDefault();if(inFlight.current)return
+  event.preventDefault();if(inFlight.current||assistanceBusy)return
   setError('')
   if(!user?.id||!uuid.test(target))return setError('This member listing request could not be verified. No change was sent.')
   if(!confirmed)return setError(mode==='grant'?'Confirm that the member authorized this public listing.':'Confirm that only admin-sponsored time will be ended.')
@@ -126,52 +128,52 @@ export default function MemberFeedListingDialog({operation,onClose,onSaved}){
   }finally{inFlight.current=false;setBusy(false)}
  }
  const refreshStatus=()=>setRetryStatus(value=>value+1)
- const close=()=>{if(!busy)onClose?.()}
+ const close=()=>{if(!actionBusy)onClose?.()}
  const statusLine=loading?'Checking server-side eligibility…':status?.listed_now?'The profile is currently listed in the community feed.':status?.admin_until&&!status.profile_complete?'Admin-sponsored time is hidden until the profile-complete badge is earned; its clock is unchanged.':status?.active_until?'Listing time is scheduled, but is not live yet.':'No current or scheduled feed listing.'
- return <dialog ref={dialog} className="ad-dialog member-feed-dialog" aria-labelledby="member-feed-title" onCancel={e=>{if(busy)e.preventDefault();else close()}}>
+ return <dialog ref={dialog} className="ad-dialog member-feed-dialog" aria-labelledby="member-feed-title" onCancel={e=>{if(actionBusy)e.preventDefault();else close()}}>
   <form onSubmit={submit}>
    <p className="ad-eyebrow">REGISTERED MEMBER · AUDITED FEED CONTROL</p>
    <h2 id="member-feed-title">List a member profile</h2>
    <p>Target: <strong>{identity}</strong>{row.username&&<> · @{row.username}</>}</p>
-   <p className="ad-muted">This uses the member’s saved username, profile and public links. It is not a managed listing, creates no account, and never changes the member’s DC balance or the existing package prices.</p>
+   <p className="ad-muted">Uses the member’s public profile. No account is created, the member pays 0 DC, and managed listings stay separate.</p>
    {loading?<p role="status">Checking listing eligibility…</p>:status&&<>
     <dl className="member-feed-status">
      <div><dt>Registered member account</dt><dd>{status.member_account?'Yes':'No — staff accounts cannot receive this feature'}</dd></div>
      <div><dt>Public profile & social-link eligibility</dt><dd>{status.profile_ready?'Ready':'Not ready'}</dd></div>
-     <div><dt>Profile-complete badge</dt><dd>{status.profile_complete?'Earned · shown on the feed':'Not earned · required for admin-sponsored listing'}</dd></div>
+     <div><dt>Profile-complete badge</dt><dd>{status.profile_complete?'Complete':'Incomplete · required to list'}</dd></div>
      <div><dt>Listing availability</dt><dd>{status.enabled?'Open':'New listings are paused'}</dd></div>
      <div><dt>Feed status</dt><dd>{statusLine}</dd></div>
      {status.paid_until&&<div><dt>Member-paid time booked through</dt><dd>{date(status.paid_until)}</dd></div>}
      {status.admin_until&&<div><dt>Admin-sponsored time booked through</dt><dd>{date(status.admin_until)}</dd></div>}
     </dl>
     {!status.member_account&&<p className="ad-error">Only a regular registered member account can receive this feature. Existing paid listing time is never changed.</p>}
-    {!status.profile_ready&&<p className="ad-notice">The saved profile must be public, unrestricted, and have an eligible public social link. Ask the member to update their own settings; this action cannot bypass privacy or restrictions.</p>}
-    {!status.profile_complete&&<p className="ad-notice">The member must complete their name, signup username, photo, bio, country and at least one interest. The existing “Profile complete” badge will then appear in the feed; this is not identity verification, and an admin cannot mark it manually. New admin-sponsored visibility is blocked until then.</p>}
-    {!status.profile_complete&&status.admin_until&&<p className="ad-notice">Existing admin-sponsored hours are hidden from the feed while the badge is incomplete; their clock is not extended. Member-paid listing time remains on its existing path.</p>}
+    {!status.profile_ready&&<p className="ad-notice">The profile must be public, unrestricted and have an eligible public link. Assistance can add a link, but never changes privacy or existing links.</p>}
+    {(!status.profile_complete||!status.profile_ready)&&<AdminMemberProfileAssistance key={`${user?.id||''}:${target}`} target={target} actor={user?.id||''} refreshKey={retryStatus} parentBusy={actionBusy} onBusyChange={setAssistanceBusy} onRefresh={refreshStatus} onSaved={message=>{setRetryStatus(value=>value+1);onProfileAssisted?.(message)}}/>}
+    {!status.profile_complete&&status.admin_until&&<p className="ad-notice">Existing sponsored time stays scheduled but hidden until profile completion; paid time is unchanged.</p>}
     {!status.enabled&&<p className="ad-notice">New listing actions are paused. No feed time or balance will change.</p>}
    </>}
    {pending&&<p className="ad-notice" role="status">A saved request may still be processing. Retry the same action with the exact same duration and reason. Do not start a second request.</p>}
    {storageError&&<p className="ad-error" role="alert">A saved request could not be read or stored. Check the member status and contact the platform owner before trying again.</p>}
    {!pending&&<div className="member-feed-mode" aria-label="Member listing actions">
-    <button type="button" aria-pressed={mode==='grant'} disabled={busy} onClick={()=>{setMode('grant');setReason('');setConfirmed(false);setError('')}}>Schedule complimentary time</button>
-    <button type="button" aria-pressed={mode==='revoke'} disabled={busy||!latestAdminEnd} onClick={()=>{setMode('revoke');setReason('');setConfirmed(false);setError('')}}>End admin-sponsored time</button>
+    <button type="button" aria-pressed={mode==='grant'} disabled={actionBusy} onClick={()=>{setMode('grant');setReason('');setConfirmed(false);setError('')}}>Schedule complimentary time</button>
+    <button type="button" aria-pressed={mode==='revoke'} disabled={actionBusy||!latestAdminEnd} onClick={()=>{setMode('revoke');setReason('');setConfirmed(false);setError('')}}>End admin-sponsored time</button>
    </div>}
    {mode==='grant'?<>
-    <label>Listing duration<select aria-label="Listing duration" required value={packageKey} disabled={busy||loading||!!pending||!status?.eligible} onChange={e=>setPackageKey(e.target.value)}>
+    <label>Listing duration<select aria-label="Listing duration" required value={packageKey} disabled={actionBusy||loading||!!pending||!status?.eligible} onChange={e=>setPackageKey(e.target.value)}>
      {pending?.kind==='grant'&&!status?.packages.some(p=>p.key===pending.package_key)&&<option value={pending.package_key}>Saved duration · {pending.duration_hours} hours</option>}
      {status?.packages.map(p=><option key={p.key} value={p.key}>{p.label} · complimentary · {p.duration_hours} hours</option>)}
     </select></label>
     <p className="ad-muted">This feature costs the member 0 DC. It starts now or queues after any already-booked paid or admin-sponsored time. Hiding the profile or public links hides the listing but does not pause its clock.</p>
     {latestPaidEnd&&<p className="ad-muted">Member-paid listing time is preserved. Complimentary time will be scheduled after existing bookings.</p>}
-    <label>Reason / internal audit note<textarea required minLength={8} maxLength={1000} value={reason} disabled={busy||!!pending} onChange={e=>setReason(e.target.value)} placeholder="Record the member's request and why a complimentary listing period is appropriate."/></label>
-    <label className="member-feed-confirm"><input type="checkbox" checked={confirmed} disabled={busy} onChange={e=>setConfirmed(e.target.checked)}/><span>I confirmed that the member authorized publishing their saved public profile and reviewed the requested listing duration.</span></label>
+    <label>Reason / internal audit note<textarea required minLength={8} maxLength={1000} value={reason} disabled={actionBusy||!!pending} onChange={e=>setReason(e.target.value)} placeholder="Record the member's request and why a complimentary listing period is appropriate."/></label>
+    <label className="member-feed-confirm"><input type="checkbox" checked={confirmed} disabled={actionBusy} onChange={e=>setConfirmed(e.target.checked)}/><span>I confirmed that the member authorized publishing their saved public profile and reviewed the requested listing duration.</span></label>
    </>:<>
     <p>This ends only current or scheduled admin-sponsored time. It does not delete or edit the profile, cancel or reschedule member-paid orders, or change any balance.</p>
-    <label>Reason / internal audit note<textarea required minLength={8} maxLength={1000} value={reason} disabled={busy||!!pending} onChange={e=>setReason(e.target.value)} placeholder="Record why admin-sponsored time should end."/></label>
-    <label className="member-feed-confirm"><input type="checkbox" checked={confirmed} disabled={busy} onChange={e=>setConfirmed(e.target.checked)}/><span>I authorize ending admin-sponsored listing time only. Member-paid time and wallet balances must remain unchanged.</span></label>
+    <label>Reason / internal audit note<textarea required minLength={8} maxLength={1000} value={reason} disabled={actionBusy||!!pending} onChange={e=>setReason(e.target.value)} placeholder="Record why admin-sponsored time should end."/></label>
+    <label className="member-feed-confirm"><input type="checkbox" checked={confirmed} disabled={actionBusy} onChange={e=>setConfirmed(e.target.checked)}/><span>I authorize ending admin-sponsored listing time only. Member-paid time and wallet balances must remain unchanged.</span></label>
    </>}
-   {error&&<p className="ad-error" role="alert">{error} <button type="button" disabled={busy||loading} onClick={refreshStatus}>Refresh member status</button></p>}
-   <div className="ad-dialog-actions"><button type="button" disabled={busy} onClick={close}>{busy?'Working…':'Close'}</button><button className="ad-primary" disabled={busy||loading||!status||storageError||!confirmed||reason.trim().length<8||(mode==='grant'&&!pending&&(!status.eligible||!pkg))||(mode==='revoke'&&!pending&&!latestAdminEnd)}>{busy?'Saving…':pending?'Retry same request':mode==='grant'?'Schedule listing time':'End admin time'}</button></div>
+   {error&&<p className="ad-error" role="alert">{error} <button type="button" disabled={actionBusy||loading} onClick={refreshStatus}>Refresh member status</button></p>}
+   <div className="ad-dialog-actions"><button type="button" disabled={actionBusy} onClick={close}>{actionBusy?'Working…':'Close'}</button><button className="ad-primary" disabled={actionBusy||loading||!status||storageError||!confirmed||reason.trim().length<8||(mode==='grant'&&!pending&&(!status.eligible||!pkg))||(mode==='revoke'&&!pending&&!latestAdminEnd)}>{busy?'Saving…':pending?'Retry same request':mode==='grant'?'Schedule listing time':'End admin time'}</button></div>
   </form>
  </dialog>
 }
